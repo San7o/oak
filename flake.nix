@@ -1,5 +1,5 @@
 {
-  description = "Development environment for the engine";
+  description = "C++ development environment";
 
   inputs = {
     nixpkgs = { url = "github:nixos/nixpkgs/nixos-unstable"; };
@@ -22,24 +22,19 @@
           stdenv = pkgsFor.${system}.gcc14Stdenv;
         } {
 
-          name = "engine-dev-shell";
+          name = "c++-dev-shell";
           hardeningDisable = ["all"];
           packages = with pkgsFor.${system}; [
-            libz.dev                # needed for assimp
-            stdenv.cc.cc.lib        # libc
+            gcc14                   # compiler
             cmake                   # build system
-            glfw-wayland-minecraft  # OpenGL windowing library
-            freetype                # font rendering
-            harfbuzzFull            # text shaping
-            alsa-lib.dev            # audio
-            doxygen                 # documentation
-            clang-tools             # code formatting
+            valgrind                # memory debugger
           ];
           shellHook = ''
               zsh
           '';
 
-          LD_LIBRARY_PATH="${pkgsFor.${system}.libz.dev}:${pkgsFor.${system}.alsa-lib.dev}";
+          LD_LIBRARY_PATH="${pkgsFor.${system}.libz}/lib";
+          CXX="${pkgsFor.${system}.gcc14}/bin/g++";
         };
     });
   };

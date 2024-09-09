@@ -34,14 +34,16 @@
 #include <ostream>
 #include <iomanip>
 
-#define DEBUG(...)                                                             \
-    brenta::logger::log(brenta::types::log_level::DEBUG, __VA_ARGS__)
-#define INFO(...)                                                              \
-    brenta::logger::log(brenta::types::log_level::INFO, __VA_ARGS__)
-#define WARNING(...)                                                           \
-    brenta::logger::log(brenta::types::log_level::WARNING, __VA_ARGS__)
-#define ERROR(...)                                                             \
-    brenta::logger::log(brenta::types::log_level::ERROR, __VA_ARGS__)
+#define OAK_DEBUG(...)                                                             \
+    oak::logger::log(oak::log_level::DEBUG, __VA_ARGS__)
+#define OAK_INFO(...)                                                              \
+    oak::logger::log(oak::log_level::INFO, __VA_ARGS__)
+#define OAK_WARNING(...)                                                           \
+    oak::logger::log(oak::log_level::WARNING, __VA_ARGS__)
+#define OAK_ERROR(...)                                                             \
+    oak::logger::log(oak::log_level::ERROR, __VA_ARGS__)
+#define OAK_OUTPUT(...)                                                            \
+    oak::logger::log(oak::log_level::OUTPUT, __VA_ARGS__)
 
 namespace oak
 {
