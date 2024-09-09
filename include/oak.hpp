@@ -77,7 +77,7 @@ class logger
      * SetLogLevel method. Onlt the messages with a Loglevel greater or equal to
      * the set log level are printed.
      */
-    static brenta::types::log_level level;
+    static log_level level;
     /**
      * @brief Log file
      *
@@ -102,7 +102,7 @@ class logger
      *
      * @param level The log level
      */
-    static void set_log_level(brenta::types::log_level level);
+    static void set_log_level(log_level level);
     /**
      * @brief Set the log file
      *
@@ -163,7 +163,7 @@ class logger
      * @param args The message
      */
     template <typename... Args>
-    static void log(brenta::types::log_level level, Args... args)
+    static void log(log_level level, Args... args)
     {
         if (logger::level > level)
             return;
