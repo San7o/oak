@@ -28,6 +28,7 @@
 
 #include <chrono>
 #include <ctime>
+#include <deque>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -35,16 +36,16 @@
 #include <print>
 #include <string>
 
-#define OAK_DEBUG(...) oak::logger::log(oak::log_level::debug, __VA_ARGS__)
-#define OAK_INFO(...) oak::logger::log(oak::log_level::info, __VA_ARGS__)
-#define OAK_WARNING(...) oak::logger::log(oak::log_level::warning, __VA_ARGS__)
-#define OAK_ERROR(...) oak::logger::log(oak::log_level::error, __VA_ARGS__)
-#define OAK_OUTPUT(...) oak::logger::log(oak::log_level::output, __VA_ARGS__)
+#define OAK_DEBUG(...) oak::logger::log(oak::level::debug, __VA_ARGS__)
+#define OAK_INFO(...) oak::logger::log(oak::level::info, __VA_ARGS__)
+#define OAK_WARNING(...) oak::logger::log(oak::level::warning, __VA_ARGS__)
+#define OAK_ERROR(...) oak::logger::log(oak::level::error, __VA_ARGS__)
+#define OAK_OUTPUT(...) oak::logger::log(oak::level::output, __VA_ARGS__)
 
 namespace oak
 {
 
-enum class log_level
+enum class level
 {
     debug = 0,
     info,
@@ -52,69 +53,84 @@ enum class log_level
     error,
     output,
     disabled,
-    __max_log_level
+    _max_level
 };
 
 class logger
 {
   public:
-    static log_level level;
-    static std::ofstream log_file;
-
-    static void constexpr set_log_level(const log_level &lvl);
+    static level constexpr get_level();
+    static bool constexpr is_open();
+    static void constexpr set_level(const level &lvl);
     static void constexpr set_log_file(const std::string &file);
     static void constexpr close_file();
 
     template <typename... Args>
-    static void log_to_stdout(const log_level &lvl,
+    static void log_to_stdout(const level &lvl,
                               const std::format_string<Args...> &fmt,
                               Args... args);
     template <typename... Args>
-    static void log_to_file(const log_level &lvl,
+    static void log_to_file(const level &lvl,
                             const std::format_string<Args...> &fmt,
                             Args... args);
     template <typename... Args>
-    static void log(const log_level &lvl,
-                    const std::format_string<Args...> &fmt, Args... args);
+    static void log(const level &lvl, const std::format_string<Args...> &fmt,
+                    Args... args);
+
+  private:
+    static level log_level;
+    static std::ofstream log_file;
+    static std::deque<std::string> log_queue;
 };
 
-oak::log_level logger::level = oak::log_level::warning;
+oak::level logger::log_level = oak::level::warning;
 std::ofstream logger::log_file;
+std::deque<std::string> logger::log_queue;
 
 template <typename... Args>
-void logger::log_to_stdout(const log_level &lvl,
+void logger::log_to_stdout(const level &lvl,
                            const std::format_string<Args...> &fmt, Args... args)
 {
-    if (logger::level > lvl)
+    if (logger::get_level() > lvl)
         return;
     std::string formatted_string = std::format(fmt, args...);
     std::cout << std::format("{}: {}", lvl, formatted_string);
 }
 
 template <typename... Args>
-void logger::log_to_file(const log_level &lvl,
+void logger::log_to_file(const level &lvl,
                          const std::format_string<Args...> &fmt, Args... args)
 {
-    if (logger::level > lvl && !logger::log_file.is_open())
+    if (logger::get_level() > lvl && !logger::log_file.is_open())
         return;
     std::string formatted_string = std::format(fmt, args...);
     logger::log_file << std::format("{}: {}", lvl, formatted_string);
 }
 
 template <typename... Args>
-void logger::log(const log_level &lvl, const std::format_string<Args...> &fmt,
+void logger::log(const level &lvl, const std::format_string<Args...> &fmt,
                  Args... args)
 {
-    if (logger::level > lvl)
+    if (logger::get_level() > lvl)
         return;
     log_to_stdout(lvl, fmt, args...);
     if (logger::log_file.is_open())
         log_to_file(lvl, fmt, args...);
 }
 
-void constexpr logger::set_log_level(const oak::log_level &lvl)
+level constexpr logger::get_level()
 {
-    logger::level = lvl;
+    return logger::log_level;
+}
+
+bool constexpr logger::is_open()
+{
+    return logger::log_file.is_open();
+}
+
+void constexpr logger::set_level(const oak::level &lvl)
+{
+    logger::log_level = lvl;
 }
 
 void constexpr logger::set_log_file(const std::string &file)
@@ -134,19 +150,19 @@ void constexpr logger::set_log_file(const std::string &file)
 
 void constexpr logger::close_file()
 {
-    if (logger::log_file.is_open())
+    if (logger::is_open())
         logger::log_file.close();
 }
 
 template <typename... Args>
-void log(const std::format_string<Args...> &fmt, Args... args)
+void out(const std::format_string<Args...> &fmt, Args... args)
 {
-    logger::log(oak::log_level::output, fmt, args...);
+    logger::log(oak::level::output, fmt, args...);
 }
 
 } // namespace oak
 
-template <> struct std::formatter<oak::log_level>
+template <> struct std::formatter<oak::level>
 {
     constexpr auto parse(format_parse_context &ctx)
     {
@@ -154,19 +170,19 @@ template <> struct std::formatter<oak::log_level>
     }
 
     template <typename FormatContext>
-    auto format(const oak::log_level &level, FormatContext &ctx) const
+    auto format(const oak::level &level, FormatContext &ctx) const
     {
         switch (level)
         {
-        case oak::log_level::error:
+        case oak::level::error:
             return format_to(ctx.out(), "ERROR");
-        case oak::log_level::warning:
+        case oak::level::warning:
             return format_to(ctx.out(), "WARNING");
-        case oak::log_level::info:
+        case oak::level::info:
             return format_to(ctx.out(), "INFO");
-        case oak::log_level::debug:
+        case oak::level::debug:
             return format_to(ctx.out(), "DEBUG");
-        case oak::log_level::output:
+        case oak::level::output:
             return format_to(ctx.out(), "OUTPUT");
         default:
             return format_to(ctx.out(), "UNKNOWN");

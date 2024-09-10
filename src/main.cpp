@@ -2,6 +2,6 @@
 
 int main()
 {
-    oak::log("Hello, World!");
+    oak::out("Hello, World!");
     return 0;
 }
