@@ -11,8 +11,10 @@ option(OAK_BUILD_TESTS "Build the tests" ON)
 
 add_executable(oak src/main.cpp)
 target_include_directories(oak PRIVATE include)
+target_compile_options(oak PRIVATE -Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow)
 
 if(OAK_BUILD_TESTS)
     add_executable(tests tests/oak_tests.cpp)
     target_include_directories(tests PRIVATE include tests)
+    target_compile_options(tests PRIVATE -Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow)
 endif()

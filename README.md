@@ -4,6 +4,10 @@ This is a simple, header-only, C++23 logger with no external dependencies.
 This code was originally forked from the logger of [Brenta Engine](https://github.com/San7o/Brenta-Engine)
 in order to develop it indipendently from the engine.
 
+```c++
+oak::info("hello {}!", name);
+```
+
 It features:
 
 - [x] multiple logging levels
@@ -22,19 +26,14 @@ It features:
 
 ## Supported log levels
 
-- `OAK_DEBUG`
+- `debug`
 
-- `OAK_INFO`
+- `info`
 
-- `OAK_WARNING`
+- `warning`
 
-- `OAK_ERROR`
+- `error`
 
-- `OAK_OUTPUT`
+- `ouput`
 
-- `OAK_DISABLED`
-
-## TODO
-
-- Print through `std::formatter`
-- Better api
+- `disabled`

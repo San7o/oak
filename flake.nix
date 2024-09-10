@@ -28,6 +28,7 @@
             gcc14                   # compiler
             cmake                   # build system
             valgrind                # memory debugger
+            clang-tools             # code formatting
           ];
           shellHook = ''
               zsh

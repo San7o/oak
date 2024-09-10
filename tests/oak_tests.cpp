@@ -7,7 +7,6 @@
 int errors = 0;
 int num_assertions = 0;
 
-
 int main()
 {
 
