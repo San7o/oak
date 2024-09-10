@@ -14,6 +14,8 @@ It features:
 
 - [x] log to file
 
+- [x] log to unix socket
+
 - [ ] log verbose level
 
 - [ ] json output

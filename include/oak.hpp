@@ -35,12 +35,19 @@
 #include <ostream>
 #include <print>
 #include <string>
+#include <expected>
 
-#define OAK_DEBUG(...) oak::logger::log(oak::level::debug, __VA_ARGS__)
-#define OAK_INFO(...) oak::logger::log(oak::level::info, __VA_ARGS__)
-#define OAK_WARNING(...) oak::logger::log(oak::level::warning, __VA_ARGS__)
-#define OAK_ERROR(...) oak::logger::log(oak::level::error, __VA_ARGS__)
-#define OAK_OUTPUT(...) oak::logger::log(oak::level::output, __VA_ARGS__)
+// Socket
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <cstring>
+
+#define OAK_DEBUG(...) oak::log(oak::level::debug, __VA_ARGS__)
+#define OAK_INFO(...) oak::log(oak::level::info, __VA_ARGS__)
+#define OAK_WARNING(...) oak::log(oak::level::warning, __VA_ARGS__)
+#define OAK_ERROR(...) oak::log(oak::level::error, __VA_ARGS__)
+#define OAK_OUTPUT(...) oak::log(oak::level::output, __VA_ARGS__)
 
 namespace oak
 {
@@ -58,27 +65,9 @@ enum class level
 
 class logger
 {
-  public:
-    static level constexpr get_level();
-    static bool constexpr is_open();
-    static void constexpr set_level(const level &lvl);
-    static void constexpr set_log_file(const std::string &file);
-    static void constexpr close_file();
-
-    template <typename... Args>
-    static void log_to_stdout(const level &lvl,
-                              const std::format_string<Args...> &fmt,
-                              Args... args);
-    template <typename... Args>
-    static void log_to_file(const level &lvl,
-                            const std::format_string<Args...> &fmt,
-                            Args... args);
-    template <typename... Args>
-    static void log(const level &lvl, const std::format_string<Args...> &fmt,
-                    Args... args);
-
-  private:
+public:
     static level log_level;
+    static int log_socket;
     static std::ofstream log_file;
     static std::deque<std::string> log_queue;
 };
@@ -86,54 +75,24 @@ class logger
 oak::level logger::log_level = oak::level::warning;
 std::ofstream logger::log_file;
 std::deque<std::string> logger::log_queue;
+int logger::log_socket = -1;
 
-template <typename... Args>
-void logger::log_to_stdout(const level &lvl,
-                           const std::format_string<Args...> &fmt, Args... args)
-{
-    if (logger::get_level() > lvl)
-        return;
-    std::string formatted_string = std::format(fmt, args...);
-    std::cout << std::format("{}: {}", lvl, formatted_string);
-}
-
-template <typename... Args>
-void logger::log_to_file(const level &lvl,
-                         const std::format_string<Args...> &fmt, Args... args)
-{
-    if (logger::get_level() > lvl && !logger::log_file.is_open())
-        return;
-    std::string formatted_string = std::format(fmt, args...);
-    logger::log_file << std::format("{}: {}", lvl, formatted_string);
-}
-
-template <typename... Args>
-void logger::log(const level &lvl, const std::format_string<Args...> &fmt,
-                 Args... args)
-{
-    if (logger::get_level() > lvl)
-        return;
-    log_to_stdout(lvl, fmt, args...);
-    if (logger::log_file.is_open())
-        log_to_file(lvl, fmt, args...);
-}
-
-level constexpr logger::get_level()
+level constexpr get_level()
 {
     return logger::log_level;
 }
 
-bool constexpr logger::is_open()
+bool constexpr is_open()
 {
     return logger::log_file.is_open();
 }
 
-void constexpr logger::set_level(const oak::level &lvl)
+void constexpr set_level(const oak::level &lvl)
 {
     logger::log_level = lvl;
 }
 
-void constexpr logger::set_log_file(const std::string &file)
+void constexpr set_file(const std::string &file)
 {
     logger::log_file.open(file, std::ios::app);
     if (!logger::log_file.is_open())
@@ -144,20 +103,95 @@ void constexpr logger::set_log_file(const std::string &file)
     auto now = std::chrono::system_clock::now();
     auto now_time_t = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_time_t);
-    log_file << "----------" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S")
+    logger::log_file << "----------" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S")
              << "----------" << std::endl;
 }
 
-void constexpr logger::close_file()
+template <typename... Args>
+void log_to_stdout(const level &lvl,
+                           const std::format_string<Args...> &fmt, Args... args)
 {
-    if (logger::is_open())
+    if (get_level() > lvl)
+        return;
+    std::string formatted_string = std::format(fmt, args...);
+    std::cout << std::format("{}: {}", lvl, formatted_string);
+}
+
+template <typename... Args>
+void log_to_file(const level &lvl,
+                         const std::format_string<Args...> &fmt, Args... args)
+{
+    if (get_level() > lvl && !logger::log_file.is_open())
+        return;
+    std::string formatted_string = std::format(fmt, args...);
+    logger::log_file << std::format("{}: {}", lvl, formatted_string);
+}
+
+template <typename... Args>
+void log_to_socket(const level &lvl,
+                           const std::format_string<Args...> &fmt, Args... args)
+{
+    if (get_level() > lvl || logger::log_socket < 0)
+        return;
+    std::cout << "socket" << std::endl << std::flush;
+    std::string formatted_string = std::format(fmt, args...);
+    write(logger::log_socket, formatted_string.c_str(), formatted_string.size());
+}
+
+template <typename... Args>
+void log(const level &lvl, const std::format_string<Args...> &fmt,
+                 Args... args)
+{
+    if (get_level() > lvl)
+        return;
+    log_to_stdout(lvl, fmt, args...);
+    if (logger::log_file.is_open())
+        log_to_file(lvl, fmt, args...);
+    if (logger::log_socket > 0)
+        log_to_socket(lvl, fmt, args...);
+}
+
+#ifdef __unix__
+[[nodiscard]] std::expected<int, std::string> set_socket(const std::string& sock_addr)
+{
+    if (sock_addr.size() > 108)
+    {
+        return std::unexpected("Socket address too long, max 108 characters");
+    }
+
+    if(logger::log_socket > 0)
+    {
+        close(logger::log_socket);
+    }
+
+    logger::log_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (logger::log_socket < 0)
+    {
+        return std::unexpected("Could not create socket");
+    }
+
+    struct sockaddr_un sockaddr_un;
+    sockaddr_un.sun_family = AF_UNIX;
+    strcpy(sockaddr_un.sun_path, sock_addr.c_str());
+    if (connect(logger::log_socket, (struct sockaddr *)&sockaddr_un, sizeof(sockaddr_un)) < 0)
+    {
+        return std::unexpected("Could not connect to socket");
+    }
+
+    return logger::log_socket;
+}
+#endif
+
+void constexpr close_file()
+{
+    if (is_open())
         logger::log_file.close();
 }
 
 template <typename... Args>
 void out(const std::format_string<Args...> &fmt, Args... args)
 {
-    logger::log(oak::level::output, fmt, args...);
+    log(oak::level::output, fmt, args...);
 }
 
 } // namespace oak
