@@ -58,77 +58,16 @@ enum log_level
     DISABLED
 };
 
-std::ostream &operator<<(std::ostream &os, const log_level level);
-
-/**
- * @brief Logger class
- *
- * This class is used to log messages to the console and to a log file. The log
- * messages can be filtered by log level.
- */
 class logger
 {
   public:
-    /**
-     * @brief Log level
-     *
-     * The log level is used to filter the messages that are printed to the
-     * console and to the log file. The log level can be set using the
-     * SetLogLevel method. Onlt the messages with a Loglevel greater or equal to
-     * the set log level are printed.
-     */
     static log_level level;
-    /**
-     * @brief Log file
-     *
-     * The log file is used to store the messages that are printed to the
-     * console. The log file can be set using the SetLogFile method.
-     */
     static std::ofstream log_file;
 
-    /**
-     * @brief Initialize the logger
-     *
-     * This method initializes the logger. It should be called before any other
-     * method of the logger is called.
-     */
-    static void init();
-    /**
-     * @brief Set the log level
-     *
-     * This method sets the log level. The log level is used to filter the
-     * messages that are printed to the console and to the log file. The log
-     * level can be set to DEBUG, INFO, WARNING, ERROR, or DISABLED.
-     *
-     * @param level The log level
-     */
     static void set_log_level(log_level level);
-    /**
-     * @brief Set the log file
-     *
-     * This method sets the log file. The log file is used to store the messages
-     * that are printed to the console. The log file can be set to a file name.
-     *
-     * @param file The log file
-     */
     static void set_log_file(const std::string &file);
-    /**
-     * @brief Close the logger
-     *
-     * This method closes the logger. It should be called before the program
-     * exits.
-     */
-    static void close();
+    static void stop();
 
-    /**
-     * @brief Log a message to stdout
-     *
-     * This method logs a message on stdout with the given log level. The
-     * message can be any number of arguments of any type.
-     *
-     * @param level The log level
-     * @param args The message
-     */
     template <typename T, typename... Args>
     static void log_to_stdout(T message, Args... args)
     {
@@ -136,32 +75,12 @@ class logger
         log_to_stdout(args...);
     }
 
-    /**
-     * @brief Log a message to the log file
-     *
-     * This method logs a message with the given log level. The message can be
-     * any number of arguments of any type. The message is printed to the log
-     * file if the log file is open.
-     *
-     * @param level The log level
-     * @param args The message
-     */
     template <typename T, typename... Args>
     static void log_to_file(T message, Args... args)
     {
         log_file << message;
         log_to_file(args...);
     }
-    /**
-     * @brief Log a message
-     *
-     * This method logs a message with the given log level. The message can be
-     * any number of arguments of any type. The message is printed to the
-     * console and to the log file if the log file is open.
-     *
-     * @param level The log level
-     * @param args The message
-     */
     template <typename... Args>
     static void log(log_level level, Args... args)
     {
@@ -187,19 +106,15 @@ class logger
 oak::log_level logger::level = oak::log_level::WARNING;
 std::ofstream logger::log_file;
 
-void logger::set_log_level(oak::types::log_level level)
+void logger::set_log_level(oak::log_level level)
 {
     logger::level = level;
 }
 
-void logger::init()
+void logger::stop()
 {
-    set_log_file("logs/log.txt");
-}
-
-void logger::close()
-{
-    logger::log_file.close();
+    if (logger::log_file.is_open())
+        logger::log_file.close();
 }
 
 void logger::set_log_file(const std::string &file)
@@ -215,6 +130,38 @@ void logger::set_log_file(const std::string &file)
     std::tm now_tm = *std::localtime(&now_time_t);
     log_file << "----------" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S")
              << "----------" << std::endl;
+}
+
+template<typename... Args>
+void log(Args... args)
+{
+    logger::log(oak::log_level::OUTPUT, args...);
+}
+
+std::ostream &operator<<(std::ostream &os, const log_level level)
+{
+    switch (level)
+    {
+    case oak::log_level::DEBUG:
+        os << "DEBUG";
+        break;
+    case oak::log_level::INFO:
+        os << "INFO";
+        break;
+    case oak::log_level::WARNING:
+        os << "WARNING";
+        break;
+    case oak::log_level::ERROR:
+        os << "ERROR";
+        break;
+    case oak::log_level::OUTPUT:
+        os << "OUTPUT";
+        break;
+    case oak::log_level::DISABLED:
+        os << "DISABLED";
+        break;
+    }
+    return os;
 }
 
 } // namespace oak

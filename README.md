@@ -14,6 +14,8 @@ It features:
 
 - [ ] json output
 
+- [ ] yaml settings
+
 - [ ] async logging and multithreading
 
 - [ ] fuzzing
@@ -34,5 +36,5 @@ It features:
 
 ## TODO
 
-- Print through `std::fomatter`
+- Print through `std::formatter`
 - Better api
