@@ -26,13 +26,16 @@
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <ctime>
 #include <deque>
 #include <expected>
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <future>
 #include <iomanip>
 #include <iostream>
 #include <ostream>
@@ -40,9 +43,6 @@
 #include <string>
 #include <thread>
 #include <unistd.h>
-#include <thread>
-#include <atomic>
-#include <condition_variable>
 
 #ifdef OAK_USE_SOCKETS
 #include <arpa/inet.h>
@@ -198,7 +198,7 @@ void constexpr close_socket()
 }
 #endif
 
-void add_to_queue(const std::string &str, const destination& d)
+void add_to_queue(const std::string &str, const destination &d)
 {
     {
         std::lock_guard<std::mutex> lock(logger::log_mutex);
@@ -235,10 +235,14 @@ void constexpr add_flags()
 
 void writer()
 {
-    while(!logger::close_writer.load())
+    while (!logger::close_writer.load())
     {
         std::unique_lock<std::mutex> lock(logger::log_mutex);
-        logger::log_cv.wait(lock, [] { return !logger::log_queue.empty() || logger::close_writer.load(); });
+        logger::log_cv.wait(lock,
+                            [] {
+                                return !logger::log_queue.empty()
+                                       || logger::close_writer.load();
+                            });
         while (!logger::log_queue.empty())
         {
             auto elem = logger::log_queue.front();
@@ -631,9 +635,21 @@ inline void output(const std::string &fmt, Args &&...args)
     log(oak::level::output, fmt, args...);
 }
 
+template <typename... Args>
+inline void async(const level &lvl, const std::string &fmt, Args &&...args)
+{
+    (void)std::async([lvl, fmt, args...]() { log(lvl, fmt, args...); });
+}
+
 void flush()
 {
     std::cout << std::flush;
+    if (is_file_open())
+        logger::log_file << std::flush;
+}
+
+void flush_file()
+{
     if (is_file_open())
         logger::log_file << std::flush;
 }

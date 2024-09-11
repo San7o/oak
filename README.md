@@ -102,7 +102,7 @@ if (!r.has_value())
 
 - [x] log buffering
 
-- [ ] async logging
+- [x] async logging
 
 
 ## Supported log levels

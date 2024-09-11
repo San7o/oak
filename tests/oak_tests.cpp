@@ -55,6 +55,11 @@ void test_log()
     oak::set_json_serialization(false);
 }
 
+void test_async()
+{
+    oak::async(oak::level::info, "This was async!");
+}
+
 #ifdef OAK_USE_SOCKETS
 void test_unix_socket_connect_and_send_message()
 {
@@ -162,12 +167,14 @@ int main()
     test_flags();
     test_settings_file();
     test_log();
+    test_async();
 #ifdef OAK_USE_SOCKETS
 #ifdef __unix__
     test_unix_socket();
     test_net_socket();
 #endif
 #endif
+
     oak::stop_writer();
 
     if (errors > 0)
