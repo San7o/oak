@@ -36,14 +36,15 @@
 #include <ostream>
 #include <print>
 #include <string>
+#include <chrono>
 
 #ifdef OAK_USE_SOCKETS
+#include <arpa/inet.h>
 #include <cstring>
+#include <netinet/ip.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <netinet/ip.h>
-#include <arpa/inet.h>
 #endif
 
 #define OAK_DEBUG(...) oak::log(oak::level::debug, __VA_ARGS__)
@@ -73,8 +74,17 @@ enum class protocol_t
     _max_protocol
 };
 
+enum class flags
+{
+    none = 0,
+    level = 1,
+    date = 2,
+    time = 4
+};
+
 struct logger
 {
+    static long unsigned int flag_bits;
     static level log_level;
     static std::ofstream log_file;
     static std::deque<std::string> log_queue;
@@ -83,6 +93,7 @@ struct logger
 #endif
 };
 
+long unsigned int logger::flag_bits = 1;
 oak::level logger::log_level = oak::level::warning;
 std::ofstream logger::log_file;
 std::deque<std::string> logger::log_queue;
@@ -91,6 +102,11 @@ int logger::log_socket = -1;
 inline level constexpr get_level()
 {
     return logger::log_level;
+}
+
+inline long unsigned int constexpr get_flags()
+{
+    return logger::flag_bits;
 }
 
 inline bool constexpr is_open()
@@ -110,13 +126,6 @@ void constexpr set_file(const std::string &file)
     {
         std::cout << "Error: Could not open log file" << std::endl;
     }
-
-    auto now = std::chrono::system_clock::now();
-    auto now_time_t = std::chrono::system_clock::to_time_t(now);
-    std::tm now_tm = *std::localtime(&now_time_t);
-    logger::log_file << "----------"
-                     << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S")
-                     << "----------" << std::endl;
 }
 
 void constexpr close_file()
@@ -133,12 +142,61 @@ void constexpr close_socket()
 }
 #endif
 
-// TODO: add more verbosity and options to set verbosity level
-template<typename... Args>
-std::string log_to_string(const level &lvl, const std::format_string<Args...> &fmt, Args... args)
+template <typename... Args>
+void constexpr set_flags(flags flg, Args... args)
 {
+    logger::flag_bits = 0;
+    _set_flags(flg, args...);
+}
+
+template<typename... Args>
+void constexpr _set_flags(flags flg, Args... args)
+{
+    logger::flag_bits |= static_cast<long unsigned int>(flg);
+    if constexpr (sizeof...(args) > 0)
+    {
+        _set_flags(args...);
+    }
+}
+
+// Base case
+void constexpr _set_flags()
+{
+}
+
+template <typename... Args>
+std::string log_to_string(const level &lvl,
+                          const std::format_string<Args...> &fmt, Args... args)
+{
+    auto flags = get_flags();
+    std::string prefix = "";
+    if (flags & static_cast<long unsigned int>(flags::level))
+    {
+        prefix += std::format("{}", lvl);
+    }
+    if (flags & static_cast<long unsigned int>(flags::date))
+    {
+        auto now = std::chrono::system_clock::now();
+        auto now_time_t = std::chrono::system_clock::to_time_t(now);
+        std::tm now_tm = *std::localtime(&now_time_t);
+        std::ostringstream oss;
+        oss << " " << std::put_time(&now_tm, "%Y-%m-%d");
+        prefix += oss.str();
+    }
+    if (flags & static_cast<long unsigned int>(flags::time))
+    {
+        auto now = std::chrono::system_clock::now();
+        auto now_time_t = std::chrono::system_clock::to_time_t(now);
+        std::tm now_tm = *std::localtime(&now_time_t);
+        std::ostringstream oss;
+        oss << " " << std::put_time(&now_tm, "%H:%M:%S");
+        prefix += oss.str();
+    }
+
+    if (prefix.size() > 0)
+        prefix += ": ";
     std::string formatted_string = std::format(fmt, args...);
-    return std::format("{}: {}", lvl, formatted_string);
+    return std::format("{}{}", prefix, formatted_string);
 }
 
 template <typename... Args>
@@ -150,7 +208,7 @@ void log_to_stdout(const level &lvl, const std::format_string<Args...> &fmt,
     std::cout << log_to_string(lvl, fmt, args...);
 }
 
-inline void log_to_stdout(const std::string& str)
+inline void log_to_stdout(const std::string &str)
 {
     std::cout << str;
 }
@@ -164,7 +222,7 @@ void log_to_file(const level &lvl, const std::format_string<Args...> &fmt,
     logger::log_file << log_to_string(lvl, fmt, args...);
 }
 
-void log_to_file(const std::string& str)
+void log_to_file(const std::string &str)
 {
     if (logger::log_file.is_open())
         logger::log_file << str;
@@ -182,7 +240,7 @@ void log_to_socket(const level &lvl, const std::format_string<Args...> &fmt,
           formatted_string.size());
 }
 
-void log_to_socket(const std::string& str)
+void log_to_socket(const std::string &str)
 {
     if (logger::log_socket > 0)
         write(logger::log_socket, str.c_str(), str.size());
@@ -240,7 +298,7 @@ set_socket(const std::string &sock_addr)
 
 [[nodiscard]] std::expected<int, std::string>
 set_socket(const std::string &addr, short unsigned int port,
-                const protocol_t& protocol = protocol_t::tcp)
+           const protocol_t &protocol = protocol_t::tcp)
 {
     if (logger::log_socket > 0)
     {
@@ -249,14 +307,14 @@ set_socket(const std::string &addr, short unsigned int port,
 
     switch (protocol)
     {
-       case protocol_t::tcp:
-           logger::log_socket = socket(AF_INET, SOCK_STREAM, 0);
-           break;
-        case protocol_t::udp:
-            logger::log_socket = socket(AF_INET, SOCK_DGRAM, 0);
-            break;
-        default:
-            return std::unexpected("Invalid protocol");
+    case protocol_t::tcp:
+        logger::log_socket = socket(AF_INET, SOCK_STREAM, 0);
+        break;
+    case protocol_t::udp:
+        logger::log_socket = socket(AF_INET, SOCK_DGRAM, 0);
+        break;
+    default:
+        return std::unexpected("Invalid protocol");
     };
     logger::log_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (logger::log_socket < 0)
@@ -314,6 +372,29 @@ template <> struct std::formatter<oak::level>
             return format_to(ctx.out(), "DEBUG");
         case oak::level::output:
             return format_to(ctx.out(), "OUTPUT");
+        default:
+            return format_to(ctx.out(), "UNKNOWN");
+        }
+    }
+};
+
+template<> struct std::formatter<oak::flags>
+{
+    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+
+    template <typename FormatContext>
+    auto format(const oak::flags& flags, FormatContext& ctx) const
+    {
+        switch (flags)
+        {
+        case oak::flags::none:
+            return format_to(ctx.out(), "NONE");
+        case oak::flags::level:
+            return format_to(ctx.out(), "LEVEL");
+        case oak::flags::date:
+            return format_to(ctx.out(), "DATE");
+        case oak::flags::time:
+            return format_to(ctx.out(), "TIME");
         default:
             return format_to(ctx.out(), "UNKNOWN");
         }

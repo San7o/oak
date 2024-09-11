@@ -11,10 +11,27 @@
 int errors = 0;
 int num_assertions = 0;
 
+void test_flags()
+{
+   oak::set_flags(oak::flags::level);
+   ASSERT_EQ(oak::get_flags(), 1);
+   oak::set_flags(oak::flags::level, oak::flags::date);
+   ASSERT_EQ(oak::get_flags(), 3);
+   oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
+   ASSERT_EQ(oak::get_flags(), 7);
+   oak::set_flags(oak::flags::time);
+   ASSERT_EQ(oak::get_flags(), 4);
+}
+
 void test_log()
 {
     oak::set_level(oak::level::debug);
-    oak::log(oak::level::info, "debug\n");
+    oak::set_flags(oak::flags::none);
+    oak::log(oak::level::info, "no flags\n");
+    oak::set_flags(oak::flags::level);
+    oak::log(oak::level::info, "just level\n");
+    oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
+    oak::log(oak::level::info, "level, date and time\n");
 }
 
 #ifdef OAK_USE_SOCKETS
@@ -44,6 +61,7 @@ void test_net_socket_connect_and_send_message()
 
 void test_unix_socket()
 {
+    oak::set_flags(oak::flags::level);
     oak::set_level(oak::level::info);
 
     auto ret = oak::set_socket("prova");
@@ -77,6 +95,7 @@ void test_unix_socket()
 
 void test_net_socket()
 {
+    oak::set_flags(oak::flags::level);
     oak::set_level(oak::level::info);
 
     auto ret = oak::set_socket("127.0.0.1", 1234);
@@ -103,7 +122,7 @@ void test_net_socket()
     ASSERT(n > 0);
     ASSERT_EQ(n, 19);
     ASSERT_EQ(std::string(buf, n), "INFO: hello socket\n");
-    
+
     t.join();
     oak::close_socket();
 }
@@ -117,6 +136,7 @@ int main()
 #endif
     std::cout << "\n";
 
+    test_flags();
     test_log();
 #ifdef OAK_USE_SOCKETS
 #ifdef __unix__
