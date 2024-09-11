@@ -36,7 +36,8 @@
 #include <ostream>
 #include <print>
 #include <string>
-#include <chrono>
+#include <filesystem>
+#include <format>
 
 #ifdef OAK_USE_SOCKETS
 #include <arpa/inet.h>
@@ -130,6 +131,16 @@ void constexpr set_file(const std::string &file)
     }
 }
 
+void constexpr set_json_serialization(bool json)
+{
+    logger::json_serialize = json;
+}
+
+bool constexpr get_json_serialization()
+{
+    return logger::json_serialize;
+}
+
 void constexpr close_file()
 {
     if (is_open())
@@ -144,31 +155,119 @@ void constexpr close_socket()
 }
 #endif
 
-template <typename... Args>
-void constexpr set_flags(flags flg, Args... args)
+template <typename... Args> void constexpr set_flags(flags flg, Args... args)
 {
     logger::flag_bits = 0;
-    _set_flags(flg, args...);
+    add_flags(flg, args...);
 }
 
-template<typename... Args>
-void constexpr _set_flags(flags flg, Args... args)
+template <typename... Args> void constexpr add_flags(flags flg, Args... args)
 {
     logger::flag_bits |= static_cast<long unsigned int>(flg);
     if constexpr (sizeof...(args) > 0)
     {
-        _set_flags(args...);
+        add_flags(args...);
     }
 }
 
 // Base case
-void constexpr _set_flags()
+void constexpr add_flags()
 {
+}
+
+[[nodiscard]] std::expected<int, std::string> constexpr settings_file(const std::string& file)
+{
+    if (file.size() == 0)
+        return std::unexpected("Settings file path is empty");
+
+    if (!std::filesystem::exists(file))
+    {
+        return std::unexpected("Settings file does not exist");
+    }
+
+    std::ifstream settings(file);
+    while(!settings.eof()) {
+        std::string line;
+        std::getline(settings, line);
+        if (line.size() == 0)
+            continue;
+
+        std::string key = line.substr(0, line.find('='));
+        std::string value = line.substr(line.find('=') + 1);
+
+        key.erase(std::remove_if(key.begin(), key.end(), isspace), key.end());
+        value.erase(std::remove_if(value.begin(), value.end(), isspace), value.end());
+
+        if (key == "level")
+        {
+            if (value == "debug")
+                set_level(level::debug);
+            else if (value == "info")
+                set_level(level::info);
+            else if (value == "warning")
+                set_level(level::warning);
+            else if (value == "error")
+                set_level(level::error);
+            else if (value == "output")
+                set_level(level::output);
+            else
+                return std::unexpected("Invalid log level in file");
+        }
+        else if (key == "flags")
+        {
+            set_flags(flags::none);
+            while (value.find(',') != std::string::npos)
+            {
+                std::string flag = value.substr(0, value.find(','));
+                value = value.substr(value.find(',') + 1);
+                if (flag == "none")
+                    add_flags(flags::none);
+                else if (flag == "level")
+                    add_flags(flags::level);
+                else if (flag == "date")
+                    add_flags(flags::date);
+                else if (flag == "time")
+                    add_flags(flags::time);
+                else
+                    return std::unexpected("Invalid flags in file");
+            }
+            // get last element
+            if (value == "none")
+                add_flags(flags::none);
+            else if (value == "level")
+                add_flags(flags::level);
+            else if (value == "date")
+                add_flags(flags::date);
+            else if (value == "time")
+                add_flags(flags::time);
+            else
+                return std::unexpected("Invalid flags in file");
+        }
+        else if (key == "json")
+        {
+            if (value == "true")
+                set_json_serialization(true);
+            else if (value == "false")
+                set_json_serialization(false);
+            else
+                return std::unexpected("Invalid json value in file");
+        }
+        else if (key == "file")
+        {
+            set_file(value);
+        }
+        else
+        {
+            return std::unexpected("Invalid key in file");
+        }
+    }
+
+    return 0;
 }
 
 template <typename... Args>
 std::string log_to_string(const level &lvl,
-                          const std::format_string<Args...> &fmt, Args... args)
+                          const std::string &fmt, Args&&... args)
 {
     auto flags = get_flags();
     std::string prefix = "";
@@ -197,13 +296,13 @@ std::string log_to_string(const level &lvl,
 
     if (prefix.size() > 0)
         prefix += ": ";
-    std::string formatted_string = std::format(fmt, args...);
+    std::string formatted_string = std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
     return std::format("{}{}", prefix, formatted_string);
 }
 
 template <typename... Args>
-void log_to_stdout(const level &lvl, const std::format_string<Args...> &fmt,
-                   Args... args)
+void log_to_stdout(const level &lvl, const std::string &fmt,
+                   Args&&... args)
 {
     if (get_level() > lvl)
         return;
@@ -216,8 +315,8 @@ inline void log_to_stdout(const std::string &str)
 }
 
 template <typename... Args>
-void log_to_file(const level &lvl, const std::format_string<Args...> &fmt,
-                 Args... args)
+void log_to_file(const level &lvl, const std::string &fmt,
+                 Args&&... args)
 {
     if (get_level() > lvl && !logger::log_file.is_open())
         return;
@@ -232,8 +331,8 @@ void log_to_file(const std::string &str)
 
 #ifdef OAK_USE_SOCKETS
 template <typename... Args>
-void log_to_socket(const level &lvl, const std::format_string<Args...> &fmt,
-                   Args... args)
+void log_to_socket(const level &lvl, const std::string &fmt,
+                   Args&&... args)
 {
     if (get_level() > lvl || logger::log_socket < 0)
         return;
@@ -250,7 +349,7 @@ void log_to_socket(const std::string &str)
 #endif
 
 template <typename... Args>
-void log(const level &lvl, const std::format_string<Args...> &fmt, Args... args)
+void log(const level &lvl, const std::string &fmt, Args&&... args)
 {
     if (get_level() > lvl)
         return;
@@ -345,37 +444,37 @@ set_socket(const std::string &addr, short unsigned int port,
 #endif
 
 template <typename... Args>
-inline void out(const std::format_string<Args...> &fmt, Args... args)
+inline void out(const std::string &fmt, Args&&... args)
 {
     log(oak::level::output, fmt, args...);
 }
 
 template <typename... Args>
-inline void debug(const std::format_string<Args...> &fmt, Args... args)
+inline void debug(const std::string &fmt, Args&&... args)
 {
     log(oak::level::debug, fmt, args...);
 }
 
 template <typename... Args>
-inline void info(const std::format_string<Args...> &fmt, Args... args)
+inline void info(const std::string &fmt, Args&&... args)
 {
     log(oak::level::info, fmt, args...);
 }
 
 template <typename... Args>
-inline void warning(const std::format_string<Args...> &fmt, Args... args)
+inline void warning(const std::string &fmt, Args&&... args)
 {
     log(oak::level::warning, fmt, args...);
 }
 
 template <typename... Args>
-inline void error(const std::format_string<Args...> &fmt, Args... args)
+inline void error(const std::string &fmt, Args&&... args)
 {
     log(oak::level::error, fmt, args...);
 }
 
 template <typename... Args>
-inline void output(const std::format_string<Args...> &fmt, Args... args)
+inline void output(const std::string &fmt, Args&&... args)
 {
     log(oak::level::output, fmt, args...);
 }
@@ -417,12 +516,15 @@ template <> struct std::formatter<oak::level>
     }
 };
 
-template<> struct std::formatter<oak::flags>
+template <> struct std::formatter<oak::flags>
 {
-    constexpr auto parse(format_parse_context& ctx) { return ctx.begin(); }
+    constexpr auto parse(format_parse_context &ctx)
+    {
+        return ctx.begin();
+    }
 
     template <typename FormatContext>
-    auto format(const oak::flags& flags, FormatContext& ctx) const
+    auto format(const oak::flags &flags, FormatContext &ctx) const
     {
         switch (flags)
         {

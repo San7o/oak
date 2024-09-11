@@ -5,11 +5,14 @@ This code was originally forked from the logger of [Brenta Engine](https://githu
 in order to develop it indipendently from the engine.
 
 ## Quick Tour
-Set the log level. Only logs with an higher level will be logged:
+
+### Set the Log level
+Only logs with an higher level will be logged:
 ```c++
 oak::set_level(oak::level::debug);
 ```
 
+### How to log
 Log something with the level `info`:
 ```c++
 oak::info("hello {}!", name);
@@ -19,7 +22,7 @@ oak::info("hello {}!", name);
 INFO: hello user!
 ```
 
-Select additional information to log:
+### Add data
 ```c++
 oak::set_flags(oak::flags::level, oak::flags::date);
 ```
@@ -28,12 +31,12 @@ oak::set_flags(oak::flags::level, oak::flags::date);
 INFO 2024-09-11 11:32:09: nice
 ```
 
-Log to file:
+### Log to file
 ```c++
 oak::set_file("/tmp/my-log");
 ```
 
-Log to socket:
+### Log to socket
 ```c++
 # unix sockets
 oak::set_socket("/tmp/a-socket");
@@ -41,6 +44,21 @@ oak::set_socket("/tmp/a-socket");
 oak::set_socket("127.0.0.1", 1234);
 # udp net socket
 oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
+```
+
+### Settings file
+You can save the settings in a file with `key=value,...`, like this:
+```
+level = debug
+flags = level, date, time
+json = true
+file = tests/log_test.txt
+```
+And use this settings like so:
+```c++
+auto r = oak::settings_file("settings.oak");
+if (!r.has_value())
+    oak::error("Error opening setting file: {}", "noob");
 ```
 
 ## Features
@@ -55,13 +73,11 @@ oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
 
 - [x] log verbose level
 
+- [x] settings file
+
 - [ ] json output
 
-- [ ] yaml settings
-
 - [ ] async logging and multithreading
-
-- [ ] fuzzing
 
 ## Supported log levels
 
@@ -76,3 +92,15 @@ oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
 - `ouput`
 
 - `disabled`
+
+## Additional log info
+
+- `level`
+
+- `date`
+
+- `time`
+
+# TODO
+
+- fuzzer

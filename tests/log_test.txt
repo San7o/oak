@@ -1,0 +1,5 @@
+no flags
+INFO: just level
+INFO 2024-09-11 14:10:49: level, date and time
+INFO: hello socket
+INFO: hello socket

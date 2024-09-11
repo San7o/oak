@@ -1,0 +1,3 @@
+level = debug
+flags = level, date, time
+json = true

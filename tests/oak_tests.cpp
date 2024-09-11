@@ -13,14 +13,33 @@ int num_assertions = 0;
 
 void test_flags()
 {
-   oak::set_flags(oak::flags::level);
-   ASSERT_EQ(oak::get_flags(), 1);
-   oak::set_flags(oak::flags::level, oak::flags::date);
-   ASSERT_EQ(oak::get_flags(), 3);
-   oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
-   ASSERT_EQ(oak::get_flags(), 7);
-   oak::set_flags(oak::flags::time);
-   ASSERT_EQ(oak::get_flags(), 4);
+    oak::set_flags(oak::flags::level);
+    ASSERT_EQ(oak::get_flags(), 1);
+    oak::set_flags(oak::flags::level, oak::flags::date);
+    ASSERT_EQ(oak::get_flags(), 3);
+    oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
+    ASSERT_EQ(oak::get_flags(), 7);
+    oak::set_flags(oak::flags::time);
+    ASSERT_EQ(oak::get_flags(), 4);
+}
+
+void test_settings_file()
+{
+    auto ret = oak::settings_file("nope");
+    ASSERT(!ret.has_value());
+
+    ret = oak::settings_file("tests/test_settings1.oak");
+    ASSERT(ret.has_value());
+    
+    ASSERT_EQ(oak::get_level(), oak::level::debug);
+    ASSERT_EQ(oak::get_flags(), 7);
+    ASSERT_EQ(oak::get_json_serialization(), true);
+
+    ret = oak::settings_file("tests/test_settings2.oak");
+    ASSERT(ret.has_value());
+    ASSERT_EQ(oak::get_level(), oak::level::info);
+    ASSERT_EQ(oak::get_flags(), 2);
+    ASSERT_EQ(oak::get_json_serialization(), false);
 }
 
 void test_log()
@@ -137,6 +156,7 @@ int main()
     std::cout << "\n";
 
     test_flags();
+    test_settings_file();
     test_log();
 #ifdef OAK_USE_SOCKETS
 #ifdef __unix__

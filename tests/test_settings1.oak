@@ -1,0 +1,4 @@
+level = debug
+flags = level, date, time
+json = true
+file = tests/log_test.txt
