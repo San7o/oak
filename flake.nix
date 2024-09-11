@@ -29,6 +29,7 @@
             cmake                   # build system
             valgrind                # memory debugger
             clang-tools             # code formatting
+            gdb                     # debugger
           ];
           shellHook = ''
               zsh

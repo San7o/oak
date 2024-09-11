@@ -152,6 +152,8 @@ void test_net_socket()
 
 int main()
 {
+    oak::init_writer();
+
 #ifdef OAK_USE_SOCKETS
     std::cout << "Testing with sockets" << std::endl;
 #endif
@@ -166,6 +168,7 @@ int main()
     test_net_socket();
 #endif
 #endif
+    oak::stop_writer();
 
     if (errors > 0)
     {

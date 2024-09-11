@@ -6,6 +6,15 @@ in order to develop it indipendently from the engine.
 
 ## Quick Tour
 
+### The writer
+The logger uses a writer to read the message queue and correctly
+writes the output in the specified location, allowing buffering.
+```c++
+oak::init_writer();
+// Do stuff
+oak::stop_writer();
+```
+
 ### How to log
 Log something with the level `info`:
 ```c++
@@ -91,7 +100,7 @@ if (!r.has_value())
 
 - [x] thread safe
 
-- [ ] log buffering
+- [x] log buffering
 
 - [ ] async logging
 

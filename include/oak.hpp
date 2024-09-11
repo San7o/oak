@@ -40,6 +40,9 @@
 #include <string>
 #include <thread>
 #include <unistd.h>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
 
 #ifdef OAK_USE_SOCKETS
 #include <arpa/inet.h>
@@ -87,27 +90,51 @@ enum class flags
     tid = 16,
 };
 
+enum class destination
+{
+    std_out = 0,
+    file,
+    socket,
+    _max_destination
+};
+
+struct queue_element
+{
+    std::string message;
+    oak::destination dest;
+    queue_element(const std::string &msg, const oak::destination &d)
+        : message(std::move(msg)), dest(d)
+    {
+    }
+};
+
 struct logger
 {
     static long unsigned int flag_bits;
     static bool json_serialize;
     static level log_level;
     static std::ofstream log_file;
-    static std::deque<std::string> log_queue;
+    static std::deque<queue_element> log_queue;
 #ifdef OAK_USE_SOCKETS
     static int log_socket;
 #endif
     /* Mutexes */
     static std::mutex log_mutex;
+    static std::condition_variable log_cv;
+    static std::atomic<bool> close_writer;
+    static std::optional<std::jthread> writer_thread;
 };
 
 long unsigned int logger::flag_bits = 1;
 bool logger::json_serialize = false;
 oak::level logger::log_level = oak::level::warning;
 std::ofstream logger::log_file;
-std::deque<std::string> logger::log_queue;
+std::deque<queue_element> logger::log_queue;
 int logger::log_socket = -1;
 std::mutex logger::log_mutex;
+std::condition_variable logger::log_cv;
+std::atomic<bool> logger::close_writer = false;
+std::optional<std::jthread> logger::writer_thread;
 
 inline level constexpr get_level()
 {
@@ -171,6 +198,15 @@ void constexpr close_socket()
 }
 #endif
 
+void add_to_queue(const std::string &str, const destination& d)
+{
+    {
+        std::lock_guard<std::mutex> lock(logger::log_mutex);
+        logger::log_queue.push_back({str, d});
+    }
+    logger::log_cv.notify_one();
+}
+
 template <typename... Args> void constexpr set_flags(flags flg, Args... args)
 {
     {
@@ -195,6 +231,47 @@ template <typename... Args> void constexpr add_flags(flags flg, Args... args)
 // Base case
 void constexpr add_flags()
 {
+}
+
+void writer()
+{
+    while(!logger::close_writer.load())
+    {
+        std::unique_lock<std::mutex> lock(logger::log_mutex);
+        logger::log_cv.wait(lock, [] { return !logger::log_queue.empty() || logger::close_writer.load(); });
+        while (!logger::log_queue.empty())
+        {
+            auto elem = logger::log_queue.front();
+            logger::log_queue.pop_front();
+            switch (elem.dest)
+            {
+            case oak::destination::std_out:
+                std::cout << elem.message;
+                break;
+            case oak::destination::file:
+                logger::log_file << elem.message;
+                break;
+            case oak::destination::socket:
+                write(logger::log_socket, elem.message.c_str(),
+                      elem.message.size());
+                break;
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void init_writer()
+{
+    logger::writer_thread.emplace([] { writer(); });
+}
+
+void stop_writer()
+{
+    logger::close_writer = true;
+    logger::log_cv.notify_one();
+    logger::writer_thread->join();
 }
 
 [[nodiscard]] std::expected<int, std::string> constexpr settings_file(
@@ -380,12 +457,13 @@ void log_to_stdout(const level &lvl, const std::string &fmt, Args &&...args)
 {
     if (get_level() > lvl)
         return;
-    std::cout << log_to_string(lvl, fmt, args...);
+    std::string message = log_to_string(lvl, fmt, args...);
+    add_to_queue(message, oak::destination::std_out);
 }
 
 inline void log_to_stdout(const std::string &str)
 {
-    std::cout << str;
+    add_to_queue(str, oak::destination::std_out);
 }
 
 template <typename... Args>
@@ -393,13 +471,14 @@ void log_to_file(const level &lvl, const std::string &fmt, Args &&...args)
 {
     if (get_level() > lvl && !is_file_open())
         return;
-    logger::log_file << log_to_string(lvl, fmt, args...);
+    std::string message = log_to_string(lvl, fmt, args...);
+    add_to_queue(message, oak::destination::file);
 }
 
 void log_to_file(const std::string &str)
 {
     if (is_file_open())
-        logger::log_file << str;
+        add_to_queue(str, oak::destination::file);
 }
 
 #ifdef OAK_USE_SOCKETS
@@ -409,14 +488,13 @@ void log_to_socket(const level &lvl, const std::string &fmt, Args &&...args)
     if (get_level() > lvl || logger::log_socket < 0)
         return;
     std::string formatted_string = log_to_string(lvl, fmt, args...);
-    write(logger::log_socket, formatted_string.c_str(),
-          formatted_string.size());
+    add_to_queue(formatted_string, oak::destination::socket);
 }
 
 void log_to_socket(const std::string &str)
 {
     if (logger::log_socket > 0)
-        write(logger::log_socket, str.c_str(), str.size());
+        add_to_queue(str, oak::destination::socket);
 }
 #endif
 
