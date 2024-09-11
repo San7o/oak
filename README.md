@@ -20,7 +20,7 @@ INFO: hello user!
 ```
 
 Select additional information to log:
-``c++
+```c++
 oak::set_flags(oak::flags::level, oak::flags::date);
 ```
 ```bash
