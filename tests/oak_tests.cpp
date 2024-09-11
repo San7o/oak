@@ -27,7 +27,7 @@ void test_unix_socket_connect_and_send_message()
     ASSERT(ret.has_value());
     ASSERT(ret.value() > 0);
 
-    oak::log(oak::level::info, "hello socket");
+    oak::log(oak::level::info, "hello socket\n");
 }
 
 void test_net_socket_connect_and_send_message()
@@ -39,7 +39,7 @@ void test_net_socket_connect_and_send_message()
     ASSERT(ret.has_value());
     ASSERT(ret.value() > 0);
 
-    oak::log(oak::level::info, "hello socket");
+    oak::log(oak::level::info, "hello socket\n");
 }
 
 void test_unix_socket()
@@ -68,8 +68,8 @@ void test_unix_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 12);
-    ASSERT_EQ(std::string(buf, n), "hello socket");
+    ASSERT_EQ(n, 19);
+    ASSERT_EQ(std::string(buf, n), "INFO: hello socket\n");
 
     t.join();
     oak::close_socket();
@@ -101,8 +101,8 @@ void test_net_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 12);
-    ASSERT_EQ(std::string(buf, n), "hello socket");
+    ASSERT_EQ(n, 19);
+    ASSERT_EQ(std::string(buf, n), "INFO: hello socket\n");
     
     t.join();
     oak::close_socket();
@@ -115,6 +115,7 @@ int main()
 #ifdef OAK_USE_SOCKETS
     std::cout << "Testing with sockets" << std::endl;
 #endif
+    std::cout << "\n";
 
     test_log();
 #ifdef OAK_USE_SOCKETS

@@ -88,17 +88,17 @@ std::ofstream logger::log_file;
 std::deque<std::string> logger::log_queue;
 int logger::log_socket = -1;
 
-level constexpr get_level()
+inline level constexpr get_level()
 {
     return logger::log_level;
 }
 
-bool constexpr is_open()
+inline bool constexpr is_open()
 {
     return logger::log_file.is_open();
 }
 
-void constexpr set_level(const oak::level &lvl)
+inline void constexpr set_level(const oak::level &lvl)
 {
     logger::log_level = lvl;
 }
@@ -133,6 +133,7 @@ void constexpr close_socket()
 }
 #endif
 
+// TODO: add more verbosity and options to set verbosity level
 template<typename... Args>
 std::string log_to_string(const level &lvl, const std::format_string<Args...> &fmt, Args... args)
 {
@@ -146,8 +147,12 @@ void log_to_stdout(const level &lvl, const std::format_string<Args...> &fmt,
 {
     if (get_level() > lvl)
         return;
-    std::string formatted_string = std::format(fmt, args...);
-    std::cout << std::format("{}: {}", lvl, formatted_string);
+    std::cout << log_to_string(lvl, fmt, args...);
+}
+
+inline void log_to_stdout(const std::string& str)
+{
+    std::cout << str;
 }
 
 template <typename... Args>
@@ -156,8 +161,13 @@ void log_to_file(const level &lvl, const std::format_string<Args...> &fmt,
 {
     if (get_level() > lvl && !logger::log_file.is_open())
         return;
-    std::string formatted_string = std::format(fmt, args...);
-    logger::log_file << std::format("{}: {}", lvl, formatted_string);
+    logger::log_file << log_to_string(lvl, fmt, args...);
+}
+
+void log_to_file(const std::string& str)
+{
+    if (logger::log_file.is_open())
+        logger::log_file << str;
 }
 
 #ifdef OAK_USE_SOCKETS
@@ -167,10 +177,15 @@ void log_to_socket(const level &lvl, const std::format_string<Args...> &fmt,
 {
     if (get_level() > lvl || logger::log_socket < 0)
         return;
-    std::cout << "socket" << std::endl << std::flush;
-    std::string formatted_string = std::format(fmt, args...);
+    std::string formatted_string = log_to_string(lvl, fmt, args...);
     write(logger::log_socket, formatted_string.c_str(),
           formatted_string.size());
+}
+
+void log_to_socket(const std::string& str)
+{
+    if (logger::log_socket > 0)
+        write(logger::log_socket, str.c_str(), str.size());
 }
 #endif
 
@@ -179,12 +194,13 @@ void log(const level &lvl, const std::format_string<Args...> &fmt, Args... args)
 {
     if (get_level() > lvl)
         return;
-    log_to_stdout(lvl, fmt, args...);
+    std::string formatted_string = log_to_string(lvl, fmt, args...);
+    log_to_stdout(formatted_string);
     if (logger::log_file.is_open())
-        log_to_file(lvl, fmt, args...);
+        log_to_file(formatted_string);
 #ifdef OAK_USE_SOCKETS
     if (logger::log_socket > 0)
-        log_to_socket(lvl, fmt, args...);
+        log_to_socket(formatted_string);
 #endif
 }
 
