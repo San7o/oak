@@ -8,13 +8,20 @@ project(
 set(CMAKE_CXX_STANDARD 23 REQUIRED)
 
 option(OAK_BUILD_TESTS "Build the tests" ON)
+option(OAK_USE_SOCKETS "Enable logging on sockets" ON)
 
 add_executable(oak src/main.cpp)
 target_include_directories(oak PRIVATE include)
 target_compile_options(oak PRIVATE -Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow)
+if (OAK_USE_SOCKETS)
+    target_compile_definitions(oak PRIVATE OAK_USE_SOCKETS)
+endif()
 
 if(OAK_BUILD_TESTS)
     add_executable(tests tests/oak_tests.cpp)
     target_include_directories(tests PRIVATE include tests)
     target_compile_options(tests PRIVATE -Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow)
+    if (OAK_USE_SOCKETS)
+        target_compile_definitions(tests PRIVATE OAK_USE_SOCKETS)
+    endif()
 endif()

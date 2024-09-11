@@ -14,7 +14,9 @@ It features:
 
 - [x] log to file
 
-- [x] log to unix socket
+- [x] log to unix sockets
+
+- [x] log to net sockets
 
 - [ ] log verbose level
 

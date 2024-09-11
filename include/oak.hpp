@@ -29,19 +29,22 @@
 #include <chrono>
 #include <ctime>
 #include <deque>
+#include <expected>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <ostream>
 #include <print>
 #include <string>
-#include <expected>
 
-// Socket
+#ifdef OAK_USE_SOCKETS
+#include <cstring>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <cstring>
+#include <netinet/ip.h>
+#include <arpa/inet.h>
+#endif
 
 #define OAK_DEBUG(...) oak::log(oak::level::debug, __VA_ARGS__)
 #define OAK_INFO(...) oak::log(oak::level::info, __VA_ARGS__)
@@ -63,13 +66,21 @@ enum class level
     _max_level
 };
 
-class logger
+enum class protocol_t
 {
-public:
+    tcp = 0,
+    udp,
+    _max_protocol
+};
+
+struct logger
+{
     static level log_level;
-    static int log_socket;
     static std::ofstream log_file;
     static std::deque<std::string> log_queue;
+#ifdef OAK_USE_SOCKETS
+    static int log_socket;
+#endif
 };
 
 oak::level logger::log_level = oak::level::warning;
@@ -103,13 +114,35 @@ void constexpr set_file(const std::string &file)
     auto now = std::chrono::system_clock::now();
     auto now_time_t = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_time_t);
-    logger::log_file << "----------" << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S")
-             << "----------" << std::endl;
+    logger::log_file << "----------"
+                     << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S")
+                     << "----------" << std::endl;
+}
+
+void constexpr close_file()
+{
+    if (is_open())
+        logger::log_file.close();
+}
+
+#ifdef OAK_USE_SOCKETS
+void constexpr close_socket()
+{
+    if (logger::log_socket > 0)
+        close(logger::log_socket);
+}
+#endif
+
+template<typename... Args>
+std::string log_to_string(const level &lvl, const std::format_string<Args...> &fmt, Args... args)
+{
+    std::string formatted_string = std::format(fmt, args...);
+    return std::format("{}: {}", lvl, formatted_string);
 }
 
 template <typename... Args>
-void log_to_stdout(const level &lvl,
-                           const std::format_string<Args...> &fmt, Args... args)
+void log_to_stdout(const level &lvl, const std::format_string<Args...> &fmt,
+                   Args... args)
 {
     if (get_level() > lvl)
         return;
@@ -118,8 +151,8 @@ void log_to_stdout(const level &lvl,
 }
 
 template <typename... Args>
-void log_to_file(const level &lvl,
-                         const std::format_string<Args...> &fmt, Args... args)
+void log_to_file(const level &lvl, const std::format_string<Args...> &fmt,
+                 Args... args)
 {
     if (get_level() > lvl && !logger::log_file.is_open())
         return;
@@ -127,39 +160,45 @@ void log_to_file(const level &lvl,
     logger::log_file << std::format("{}: {}", lvl, formatted_string);
 }
 
+#ifdef OAK_USE_SOCKETS
 template <typename... Args>
-void log_to_socket(const level &lvl,
-                           const std::format_string<Args...> &fmt, Args... args)
+void log_to_socket(const level &lvl, const std::format_string<Args...> &fmt,
+                   Args... args)
 {
     if (get_level() > lvl || logger::log_socket < 0)
         return;
     std::cout << "socket" << std::endl << std::flush;
     std::string formatted_string = std::format(fmt, args...);
-    write(logger::log_socket, formatted_string.c_str(), formatted_string.size());
+    write(logger::log_socket, formatted_string.c_str(),
+          formatted_string.size());
 }
+#endif
 
 template <typename... Args>
-void log(const level &lvl, const std::format_string<Args...> &fmt,
-                 Args... args)
+void log(const level &lvl, const std::format_string<Args...> &fmt, Args... args)
 {
     if (get_level() > lvl)
         return;
     log_to_stdout(lvl, fmt, args...);
     if (logger::log_file.is_open())
         log_to_file(lvl, fmt, args...);
+#ifdef OAK_USE_SOCKETS
     if (logger::log_socket > 0)
         log_to_socket(lvl, fmt, args...);
+#endif
 }
 
+#ifdef OAK_USE_SOCKETS
 #ifdef __unix__
-[[nodiscard]] std::expected<int, std::string> set_socket(const std::string& sock_addr)
+[[nodiscard]] std::expected<int, std::string>
+set_socket(const std::string &sock_addr)
 {
     if (sock_addr.size() > 108)
     {
         return std::unexpected("Socket address too long, max 108 characters");
     }
 
-    if(logger::log_socket > 0)
+    if (logger::log_socket > 0)
     {
         close(logger::log_socket);
     }
@@ -173,7 +212,53 @@ void log(const level &lvl, const std::format_string<Args...> &fmt,
     struct sockaddr_un sockaddr_un;
     sockaddr_un.sun_family = AF_UNIX;
     strcpy(sockaddr_un.sun_path, sock_addr.c_str());
-    if (connect(logger::log_socket, (struct sockaddr *)&sockaddr_un, sizeof(sockaddr_un)) < 0)
+    if (connect(logger::log_socket, (struct sockaddr *) &sockaddr_un,
+                sizeof(sockaddr_un))
+        < 0)
+    {
+        return std::unexpected("Could not connect to socket");
+    }
+
+    return logger::log_socket;
+}
+
+[[nodiscard]] std::expected<int, std::string>
+set_socket(const std::string &addr, short unsigned int port,
+                const protocol_t& protocol = protocol_t::tcp)
+{
+    if (logger::log_socket > 0)
+    {
+        close(logger::log_socket);
+    }
+
+    switch (protocol)
+    {
+       case protocol_t::tcp:
+           logger::log_socket = socket(AF_INET, SOCK_STREAM, 0);
+           break;
+        case protocol_t::udp:
+            logger::log_socket = socket(AF_INET, SOCK_DGRAM, 0);
+            break;
+        default:
+            return std::unexpected("Invalid protocol");
+    };
+    logger::log_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (logger::log_socket < 0)
+    {
+        return std::unexpected("Could not create socket");
+    }
+
+    struct sockaddr_in sockaddr_in;
+    sockaddr_in.sin_family = AF_INET;
+    sockaddr_in.sin_port = htons(port);
+    if (inet_pton(AF_INET, addr.c_str(), &sockaddr_in.sin_addr) <= 0)
+    {
+        return std::unexpected("Invalid address");
+    }
+
+    if (connect(logger::log_socket, (struct sockaddr *) &sockaddr_in,
+                sizeof(sockaddr_in))
+        < 0)
     {
         return std::unexpected("Could not connect to socket");
     }
@@ -181,12 +266,7 @@ void log(const level &lvl, const std::format_string<Args...> &fmt,
     return logger::log_socket;
 }
 #endif
-
-void constexpr close_file()
-{
-    if (is_open())
-        logger::log_file.close();
-}
+#endif
 
 template <typename... Args>
 void out(const std::format_string<Args...> &fmt, Args... args)
