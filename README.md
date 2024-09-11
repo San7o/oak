@@ -28,7 +28,7 @@ oak::set_flags(oak::flags::level, oak::flags::date);
 ```
 ```bash
 # example output
-[LEVEL=INFO,DATE=2024-09-11] nice
+[level=info,date=2024-09-11] nice
 ```
 
 ### Log to file
@@ -44,6 +44,14 @@ oak::set_socket("/tmp/a-socket");
 oak::set_socket("127.0.0.1", 1234);
 # udp net socket
 oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
+```
+
+### Json serialization
+```c++
+oak::set_json_serialization(true);
+```
+```
+{ "level": "output", "date": "2024-09-11", "time": "15:35:20", "pid": 30744, "tid": 9992229128130766714, "message": "Hello Mario" }
 ```
 
 ### Settings file
@@ -75,7 +83,7 @@ if (!r.has_value())
 
 - [x] settings file
 
-- [ ] json output
+- [x] json output
 
 - [ ] async logging and multithreading
 
@@ -108,3 +116,7 @@ if (!r.has_value())
 # TODO
 
 - fuzzer
+
+- more tests
+
+- documentation

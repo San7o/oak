@@ -38,8 +38,8 @@
 #include <ostream>
 #include <print>
 #include <string>
-#include <unistd.h>
 #include <thread>
+#include <unistd.h>
 
 #ifdef OAK_USE_SOCKETS
 #include <arpa/inet.h>
@@ -285,14 +285,22 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
                           Args &&...args)
 {
     auto flags = get_flags();
-    std::string prefix = " ";
-    if (flags > 0)
+    auto json = get_json_serialization();
+    std::string prefix = "";
+    if (flags > 0 && !json)
     {
-        prefix += std::format("[");
+            prefix += "[";
+    }
+    if (json)
+    {
+        prefix += "{ ";
     }
     if (flags & static_cast<long unsigned int>(flags::level))
     {
-        prefix += std::format("LEVEL={}", lvl);
+        if (json)
+            prefix += std::format("\"level\": \"{}\"", lvl);
+        else
+            prefix += std::format("level={}", lvl);
     }
     if (flags & static_cast<long unsigned int>(flags::date))
     {
@@ -300,7 +308,10 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
         auto now_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm now_tm = *std::localtime(&now_time_t);
         std::ostringstream oss;
-        oss << ",DATE=" << std::put_time(&now_tm, "%Y-%m-%d");
+        if (json)
+            oss << ", \"date\": \"" << std::put_time(&now_tm, "%Y-%m-%d") << "\"";
+        else
+            oss << ",date=" << std::put_time(&now_tm, "%Y-%m-%d");
         prefix += oss.str();
     }
     if (flags & static_cast<long unsigned int>(flags::time))
@@ -309,23 +320,37 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
         auto now_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm now_tm = *std::localtime(&now_time_t);
         std::ostringstream oss;
-        oss << ",TIME=" << std::put_time(&now_tm, "%H:%M:%S");
+        if (json)
+            oss << ", \"time\": \"" << std::put_time(&now_tm, "%H:%M:%S") << "\"";
+        else
+            oss << ",time=" << std::put_time(&now_tm, "%H:%M:%S");
         prefix += oss.str();
     }
     if (flags & static_cast<long unsigned int>(flags::pid))
     {
-        prefix += std::format(",PID={}", getpid());
+        if (json)
+            prefix += ", \"pid\": " + std::to_string(getpid());
+        else
+            prefix += std::format(",pid={}", getpid());
     }
     if (flags & static_cast<long unsigned int>(flags::tid))
     {
-        prefix += std::format(",TID={}", std::this_thread::get_id());
+        if (json)
+            prefix += ", \"tid\": " + std::to_string(
+                std::hash<std::thread::id>{}(std::this_thread::get_id()));
+        else
+            prefix += std::format(",tid={}", std::this_thread::get_id());
     }
 
-    if (flags > 0)
+    if (flags > 0 && !json)
         prefix += "] ";
+    if (flags > 0 && json)
+        prefix += ", ";
     std::string formatted_string =
         std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
-    return std::format("{}{}", prefix, formatted_string);
+    if (json)
+        return std::format("{}\"message\": \"{}\" }}\n", prefix, formatted_string);
+    return std::format("{}{}\n", prefix, formatted_string);
 }
 
 template <typename... Args>
@@ -526,17 +551,17 @@ template <> struct std::formatter<oak::level>
         switch (level)
         {
         case oak::level::error:
-            return format_to(ctx.out(), "ERROR");
+            return format_to(ctx.out(), "error");
         case oak::level::warning:
-            return format_to(ctx.out(), "WARNING");
+            return format_to(ctx.out(), "warning");
         case oak::level::info:
-            return format_to(ctx.out(), "INFO");
+            return format_to(ctx.out(), "info");
         case oak::level::debug:
-            return format_to(ctx.out(), "DEBUG");
+            return format_to(ctx.out(), "debug");
         case oak::level::output:
-            return format_to(ctx.out(), "OUTPUT");
+            return format_to(ctx.out(), "output");
         default:
-            return format_to(ctx.out(), "UNKNOWN");
+            return format_to(ctx.out(), "unknown");
         }
     }
 };
@@ -554,19 +579,19 @@ template <> struct std::formatter<oak::flags>
         switch (flags)
         {
         case oak::flags::none:
-            return format_to(ctx.out(), "NONE");
+            return format_to(ctx.out(), "none");
         case oak::flags::level:
-            return format_to(ctx.out(), "LEVEL");
+            return format_to(ctx.out(), "level");
         case oak::flags::date:
-            return format_to(ctx.out(), "DATE");
+            return format_to(ctx.out(), "date");
         case oak::flags::time:
-            return format_to(ctx.out(), "TIME");
+            return format_to(ctx.out(), "time");
         case oak::flags::pid:
-            return format_to(ctx.out(), "PID");
+            return format_to(ctx.out(), "pid");
         case oak::flags::tid:
-            return format_to(ctx.out(), "TID");
+            return format_to(ctx.out(), "tid");
         default:
-            return format_to(ctx.out(), "UNKNOWN");
+            return format_to(ctx.out(), "unknown");
         }
     }
 };

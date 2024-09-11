@@ -32,7 +32,7 @@ void test_settings_file()
     ASSERT(ret.has_value());
 
     ASSERT_EQ(oak::get_level(), oak::level::debug);
-    ASSERT_EQ(oak::get_flags(), 7);
+    ASSERT_EQ(oak::get_flags(), 31);
     ASSERT_EQ(oak::get_json_serialization(), true);
 
     ret = oak::settings_file("tests/test_settings2.oak");
@@ -44,13 +44,15 @@ void test_settings_file()
 
 void test_log()
 {
+    oak::set_json_serialization(true);
     oak::set_level(oak::level::debug);
     oak::set_flags(oak::flags::none);
-    oak::log(oak::level::info, "no flags\n");
+    oak::log(oak::level::info, "no flags");
     oak::set_flags(oak::flags::level);
-    oak::log(oak::level::info, "just level\n");
+    oak::log(oak::level::info, "just level");
     oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
-    oak::log(oak::level::info, "level, date and time\n");
+    oak::log(oak::level::info, "level, date and time");
+    oak::set_json_serialization(false);
 }
 
 #ifdef OAK_USE_SOCKETS
@@ -63,7 +65,7 @@ void test_unix_socket_connect_and_send_message()
     ASSERT(ret.has_value());
     ASSERT(ret.value() > 0);
 
-    oak::log(oak::level::info, "hello socket\n");
+    oak::log(oak::level::info, "hello socket");
 }
 
 void test_net_socket_connect_and_send_message()
@@ -75,7 +77,7 @@ void test_net_socket_connect_and_send_message()
     ASSERT(ret.has_value());
     ASSERT(ret.value() > 0);
 
-    oak::log(oak::level::info, "hello socket\n");
+    oak::log(oak::level::info, "hello socket");
 }
 
 void test_unix_socket()
@@ -105,8 +107,8 @@ void test_unix_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 29);
-    ASSERT_EQ(std::string(buf, n), "[LEVEL=INFO] hello socket\n");
+    ASSERT_EQ(n, 26);
+    ASSERT_EQ(std::string(buf, n), "[level=info] hello socket\n");
 
     t.join();
     oak::close_socket();
@@ -139,8 +141,8 @@ void test_net_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 29);
-    ASSERT_EQ(std::string(buf, n), "[LEVEL=INFO] hello socket\n");
+    ASSERT_EQ(n, 26);
+    ASSERT_EQ(std::string(buf, n), "[level=info] hello socket\n");
 
     t.join();
     oak::close_socket();

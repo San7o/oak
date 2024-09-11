@@ -33,3 +33,126 @@ LEVEL=INFO, LOG=hello socket
  [LEVEL=INFO,DATE=2024-09-11,TIME=14:30:55] level, date and time
  [LEVEL=INFO] hello socket
  [LEVEL=INFO] hello socket
+ no flags
+ [LEVEL=INFO] just level
+ [LEVEL=INFO,DATE=2024-09-11,TIME=15:13:42] level, date and time
+ [LEVEL=INFO] hello socket
+ [LEVEL=INFO] hello socket
+ no flags
+ [LEVEL=INFO] just level
+ [LEVEL=INFO,DATE=2024-09-11,TIME=15:14:10] level, date and time
+ [LEVEL=INFO] hello socket
+ [LEVEL=INFO] hello socket
+no flags
+[LEVEL=INFO] just level
+[LEVEL=INFO,DATE=2024-09-11,TIME=15:15:10] level, date and time
+[LEVEL=INFO] hello socket
+[LEVEL=INFO] hello socket
+no flags
+[LEVEL=INFO] just level
+[LEVEL=INFO,DATE=2024-09-11,TIME=15:15:28] level, date and time
+[LEVEL=INFO] hello socket
+[LEVEL=INFO] hello socket
+no flags
+[LEVEL=INFO] just level
+[LEVEL=INFO,DATE=2024-09-11,TIME=15:15:32] level, date and time
+[LEVEL=INFO] hello socket
+[LEVEL=INFO] hello socket
+no flags
+[LEVEL=INFO] just level
+[LEVEL=INFO,DATE=2024-09-11,TIME=15:15:57] level, date and time
+[LEVEL=INFO] hello socket
+[LEVEL=INFO] hello socket
+no flags
+[LEVEL=INFO] just level
+[LEVEL=INFO,DATE=2024-09-11,TIME=15:17:46] level, date and time
+[LEVEL=INFO] hello socket
+[LEVEL=INFO] hello socket
+no flags
+[LEVEL=INFO] just level
+[LEVEL=INFO,DATE=2024-09-11,TIME=15:17:52] level, date and time
+[LEVEL=INFO] hello socket
+[LEVEL=INFO] hello socket
+no flags
+[level=info] just level
+[level=info,date=2024-09-11,time=15:19:58] level, date and time
+[level=info] hello socket
+[level=info] hello socket
+no flags
+[level=info] just level
+[level=info,date=2024-09-11,time=15:23:29] level, date and time
+[level=info] hello socket
+[level=info] hello socket
+"message":"no flags
+"}
+{"level":"info""message":"just level
+"}
+{"level":"info","date":"2024-09-11","time":"15:24:04""message":"level, date and time
+"}
+{"level":"info""message":"hello socket
+"}
+{"level":"info""message":"hello socket
+"}
+"message":"no flags
+"}
+{"level":"info""message":"just level
+"}
+{"level":"info","date":"2024-09-11","time":"15:24:25""message":"level, date and time
+"}
+[level=info] hello socket
+[level=info] hello socket
+{"message":"no flags
+"}
+{"level":"info""message":"just level
+"}
+{"level":"info","date":"2024-09-11","time":"15:25:03""message":"level, date and time
+"}
+[level=info] hello socket
+[level=info] hello socket
+{ , "message":"no flags
+" }
+{ "level":"info", "message":"just level
+" }
+{ "level":"info", "date":"2024-09-11", "time":"15:26:18", "message":"level, date and time
+" }
+[level=info] hello socket
+[level=info] hello socket
+{ , "message":"no flags" }
+{ "level":"info", "message":"just level" }
+{ "level":"info", "date":"2024-09-11", "time":"15:32:54", "message":"level, date and time" }
+[level=info] hello socket[level=info] hello socket{ , "message":"no flags" }
+{ "level":"info", "message":"just level" }
+{ "level":"info", "date":"2024-09-11", "time":"15:33:09", "message":"level, date and time" }
+[level=info] hello socket[level=info] hello socket{ , "message":"no flags" }
+{ "level":"info", "message":"just level" }
+{ "level":"info", "date":"2024-09-11", "time":"15:33:12", "message":"level, date and time" }
+[level=info] hello socket[level=info] hello socket{ , "message": "no flags" }
+{ "level":"info", "message": "just level" }
+{ "level":"info", "date":"2024-09-11", "time":"15:33:49", "message": "level, date and time" }
+[level=info] hello socket
+[level=info] hello socket
+{ , "message": "no flags" }
+{ "level":"info", "message": "just level" }
+{ "level":"info", "date":"2024-09-11", "time":"15:34:06", "message": "level, date and time" }
+[level=info] hello socket
+[level=info] hello socket
+{ "message": "no flags" }
+{ "level":"info", "message": "just level" }
+{ "level":"info", "date":"2024-09-11", "time":"15:34:12", "message": "level, date and time" }
+[level=info] hello socket
+[level=info] hello socket
+{ "message": "no flags" }
+{ "level": "info", "message": "just level" }
+{ "level": "info", "date": "2024-09-11", "time": "15:34:47", "message": "level, date and time" }
+[level=info] hello socket
+[level=info] hello socket
+{ "message": "no flags" }
+{ "level": "info", "message": "just level" }
+{ "level": "info", "date": "2024-09-11", "time": "15:35:05", "message": "level, date and time" }
+[level=info] hello socket
+[level=info] hello socket
+{ "message": "no flags" }
+{ "level": "info", "message": "just level" }
+{ "level": "info", "date": "2024-09-11", "time": "15:36:51", "message": "level, date and time" }
+[level=info] hello socket
+[level=info] hello socket
