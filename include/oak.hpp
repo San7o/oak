@@ -85,6 +85,7 @@ enum class flags
 struct logger
 {
     static long unsigned int flag_bits;
+    static bool json_serialize;
     static level log_level;
     static std::ofstream log_file;
     static std::deque<std::string> log_queue;
@@ -94,6 +95,7 @@ struct logger
 };
 
 long unsigned int logger::flag_bits = 1;
+bool logger::json_serialize = false;
 oak::level logger::log_level = oak::level::warning;
 std::ofstream logger::log_file;
 std::deque<std::string> logger::log_queue;
@@ -343,9 +345,46 @@ set_socket(const std::string &addr, short unsigned int port,
 #endif
 
 template <typename... Args>
-void out(const std::format_string<Args...> &fmt, Args... args)
+inline void out(const std::format_string<Args...> &fmt, Args... args)
 {
     log(oak::level::output, fmt, args...);
+}
+
+template <typename... Args>
+inline void debug(const std::format_string<Args...> &fmt, Args... args)
+{
+    log(oak::level::debug, fmt, args...);
+}
+
+template <typename... Args>
+inline void info(const std::format_string<Args...> &fmt, Args... args)
+{
+    log(oak::level::info, fmt, args...);
+}
+
+template <typename... Args>
+inline void warning(const std::format_string<Args...> &fmt, Args... args)
+{
+    log(oak::level::warning, fmt, args...);
+}
+
+template <typename... Args>
+inline void error(const std::format_string<Args...> &fmt, Args... args)
+{
+    log(oak::level::error, fmt, args...);
+}
+
+template <typename... Args>
+inline void output(const std::format_string<Args...> &fmt, Args... args)
+{
+    log(oak::level::output, fmt, args...);
+}
+
+void flush()
+{
+    std::cout << std::flush;
+    if (logger::log_file.is_open())
+        logger::log_file << std::flush;
 }
 
 } // namespace oak

@@ -53,7 +53,7 @@ oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
 
 - [x] log to net sockets
 
-- [ ] log verbose level
+- [x] log verbose level
 
 - [ ] json output
 
