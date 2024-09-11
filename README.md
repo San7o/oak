@@ -1,16 +1,10 @@
 # oak - your favourite logger
 
-Oak is a feature-rich, header-only C++23 logger with no external dependencies.
+Oak is a feature-rich, header-only thread-safe C++23 logger with no external dependencies.
 This code was originally forked from the logger of [Brenta Engine](https://github.com/San7o/Brenta-Engine)
 in order to develop it indipendently from the engine.
 
 ## Quick Tour
-
-### Set the Log level
-Only logs with an higher level will be logged:
-```c++
-oak::set_level(oak::level::debug);
-```
 
 ### How to log
 Log something with the level `info`:
@@ -19,7 +13,17 @@ oak::info("hello {}!", name);
 ```
 ```bash
 # output
-INFO: hello user!
+[level=info] hello user!
+```
+Or use macros if you prefer:
+```c++
+OAK_INFO("hello {}!", name);
+```
+
+### Set the Log level
+Only logs with an higher level will be logged:
+```c++
+oak::set_level(oak::level::debug);
 ```
 
 ### Add metadata
@@ -83,9 +87,14 @@ if (!r.has_value())
 
 - [x] settings file
 
-- [x] json output
+- [x] json serialization
 
-- [ ] async logging and multithreading
+- [x] thread safe
+
+- [ ] log buffering
+
+- [ ] async logging
+
 
 ## Supported log levels
 

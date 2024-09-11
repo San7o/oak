@@ -97,6 +97,8 @@ struct logger
 #ifdef OAK_USE_SOCKETS
     static int log_socket;
 #endif
+    /* Mutexes */
+    static std::mutex log_mutex;
 };
 
 long unsigned int logger::flag_bits = 1;
@@ -105,29 +107,35 @@ oak::level logger::log_level = oak::level::warning;
 std::ofstream logger::log_file;
 std::deque<std::string> logger::log_queue;
 int logger::log_socket = -1;
+std::mutex logger::log_mutex;
 
 inline level constexpr get_level()
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     return logger::log_level;
 }
 
 inline long unsigned int constexpr get_flags()
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     return logger::flag_bits;
 }
 
-inline bool constexpr is_open()
+inline bool constexpr is_file_open()
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     return logger::log_file.is_open();
 }
 
 inline void constexpr set_level(const oak::level &lvl)
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     logger::log_level = lvl;
 }
 
 void constexpr set_file(const std::string &file)
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     logger::log_file.open(file, std::ios::app);
     if (!logger::log_file.is_open())
     {
@@ -137,23 +145,27 @@ void constexpr set_file(const std::string &file)
 
 void constexpr set_json_serialization(bool json)
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     logger::json_serialize = json;
 }
 
 bool constexpr get_json_serialization()
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     return logger::json_serialize;
 }
 
 void constexpr close_file()
 {
-    if (is_open())
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
+    if (is_file_open())
         logger::log_file.close();
 }
 
 #ifdef OAK_USE_SOCKETS
 void constexpr close_socket()
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     if (logger::log_socket > 0)
         close(logger::log_socket);
 }
@@ -161,13 +173,19 @@ void constexpr close_socket()
 
 template <typename... Args> void constexpr set_flags(flags flg, Args... args)
 {
-    logger::flag_bits = 0;
+    {
+        std::lock_guard<std::mutex> lock(logger::log_mutex);
+        logger::flag_bits = 0;
+    }
     add_flags(flg, args...);
 }
 
 template <typename... Args> void constexpr add_flags(flags flg, Args... args)
 {
-    logger::flag_bits |= static_cast<long unsigned int>(flg);
+    {
+        std::lock_guard<std::mutex> lock(logger::log_mutex);
+        logger::flag_bits |= static_cast<long unsigned int>(flg);
+    }
     if constexpr (sizeof...(args) > 0)
     {
         add_flags(args...);
@@ -289,7 +307,7 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
     std::string prefix = "";
     if (flags > 0 && !json)
     {
-            prefix += "[";
+        prefix += "[";
     }
     if (json)
     {
@@ -309,7 +327,8 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
         std::tm now_tm = *std::localtime(&now_time_t);
         std::ostringstream oss;
         if (json)
-            oss << ", \"date\": \"" << std::put_time(&now_tm, "%Y-%m-%d") << "\"";
+            oss << ", \"date\": \"" << std::put_time(&now_tm, "%Y-%m-%d")
+                << "\"";
         else
             oss << ",date=" << std::put_time(&now_tm, "%Y-%m-%d");
         prefix += oss.str();
@@ -321,7 +340,8 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
         std::tm now_tm = *std::localtime(&now_time_t);
         std::ostringstream oss;
         if (json)
-            oss << ", \"time\": \"" << std::put_time(&now_tm, "%H:%M:%S") << "\"";
+            oss << ", \"time\": \"" << std::put_time(&now_tm, "%H:%M:%S")
+                << "\"";
         else
             oss << ",time=" << std::put_time(&now_tm, "%H:%M:%S");
         prefix += oss.str();
@@ -336,8 +356,9 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
     if (flags & static_cast<long unsigned int>(flags::tid))
     {
         if (json)
-            prefix += ", \"tid\": " + std::to_string(
-                std::hash<std::thread::id>{}(std::this_thread::get_id()));
+            prefix += ", \"tid\": "
+                      + std::to_string(std::hash<std::thread::id>{}(
+                          std::this_thread::get_id()));
         else
             prefix += std::format(",tid={}", std::this_thread::get_id());
     }
@@ -349,7 +370,8 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
     std::string formatted_string =
         std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
     if (json)
-        return std::format("{}\"message\": \"{}\" }}\n", prefix, formatted_string);
+        return std::format("{}\"message\": \"{}\" }}\n", prefix,
+                           formatted_string);
     return std::format("{}{}\n", prefix, formatted_string);
 }
 
@@ -369,14 +391,14 @@ inline void log_to_stdout(const std::string &str)
 template <typename... Args>
 void log_to_file(const level &lvl, const std::string &fmt, Args &&...args)
 {
-    if (get_level() > lvl && !logger::log_file.is_open())
+    if (get_level() > lvl && !is_file_open())
         return;
     logger::log_file << log_to_string(lvl, fmt, args...);
 }
 
 void log_to_file(const std::string &str)
 {
-    if (logger::log_file.is_open())
+    if (is_file_open())
         logger::log_file << str;
 }
 
@@ -405,7 +427,7 @@ void log(const level &lvl, const std::string &fmt, Args &&...args)
         return;
     std::string formatted_string = log_to_string(lvl, fmt, args...);
     log_to_stdout(formatted_string);
-    if (logger::log_file.is_open())
+    if (is_file_open())
         log_to_file(formatted_string);
 #ifdef OAK_USE_SOCKETS
     if (logger::log_socket > 0)
@@ -418,6 +440,7 @@ void log(const level &lvl, const std::string &fmt, Args &&...args)
 [[nodiscard]] std::expected<int, std::string>
 set_socket(const std::string &sock_addr)
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     if (sock_addr.size() > 108)
     {
         return std::unexpected("Socket address too long, max 108 characters");
@@ -451,6 +474,7 @@ set_socket(const std::string &sock_addr)
 set_socket(const std::string &addr, short unsigned int port,
            const protocol_t &protocol = protocol_t::tcp)
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     if (logger::log_socket > 0)
     {
         close(logger::log_socket);
@@ -532,7 +556,7 @@ inline void output(const std::string &fmt, Args &&...args)
 void flush()
 {
     std::cout << std::flush;
-    if (logger::log_file.is_open())
+    if (is_file_open())
         logger::log_file << std::flush;
 }
 
