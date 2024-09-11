@@ -30,14 +30,16 @@
 #include <ctime>
 #include <deque>
 #include <expected>
+#include <filesystem>
+#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <ostream>
 #include <print>
 #include <string>
-#include <filesystem>
-#include <format>
+#include <unistd.h>
+#include <thread>
 
 #ifdef OAK_USE_SOCKETS
 #include <arpa/inet.h>
@@ -80,7 +82,9 @@ enum class flags
     none = 0,
     level = 1,
     date = 2,
-    time = 4
+    time = 4,
+    pid = 8,
+    tid = 16,
 };
 
 struct logger
@@ -175,7 +179,8 @@ void constexpr add_flags()
 {
 }
 
-[[nodiscard]] std::expected<int, std::string> constexpr settings_file(const std::string& file)
+[[nodiscard]] std::expected<int, std::string> constexpr settings_file(
+    const std::string &file)
 {
     if (file.size() == 0)
         return std::unexpected("Settings file path is empty");
@@ -186,7 +191,8 @@ void constexpr add_flags()
     }
 
     std::ifstream settings(file);
-    while(!settings.eof()) {
+    while (!settings.eof())
+    {
         std::string line;
         std::getline(settings, line);
         if (line.size() == 0)
@@ -196,7 +202,8 @@ void constexpr add_flags()
         std::string value = line.substr(line.find('=') + 1);
 
         key.erase(std::remove_if(key.begin(), key.end(), isspace), key.end());
-        value.erase(std::remove_if(value.begin(), value.end(), isspace), value.end());
+        value.erase(std::remove_if(value.begin(), value.end(), isspace),
+                    value.end());
 
         if (key == "level")
         {
@@ -228,6 +235,10 @@ void constexpr add_flags()
                     add_flags(flags::date);
                 else if (flag == "time")
                     add_flags(flags::time);
+                else if (flag == "pid")
+                    add_flags(flags::pid);
+                else if (flag == "tid")
+                    add_flags(flags::tid);
                 else
                     return std::unexpected("Invalid flags in file");
             }
@@ -240,6 +251,10 @@ void constexpr add_flags()
                 add_flags(flags::date);
             else if (value == "time")
                 add_flags(flags::time);
+            else if (value == "pid")
+                add_flags(flags::pid);
+            else if (value == "tid")
+                add_flags(flags::tid);
             else
                 return std::unexpected("Invalid flags in file");
         }
@@ -266,14 +281,18 @@ void constexpr add_flags()
 }
 
 template <typename... Args>
-std::string log_to_string(const level &lvl,
-                          const std::string &fmt, Args&&... args)
+std::string log_to_string(const level &lvl, const std::string &fmt,
+                          Args &&...args)
 {
     auto flags = get_flags();
-    std::string prefix = "";
+    std::string prefix = " ";
+    if (flags > 0)
+    {
+        prefix += std::format("[");
+    }
     if (flags & static_cast<long unsigned int>(flags::level))
     {
-        prefix += std::format("{}", lvl);
+        prefix += std::format("LEVEL={}", lvl);
     }
     if (flags & static_cast<long unsigned int>(flags::date))
     {
@@ -281,7 +300,7 @@ std::string log_to_string(const level &lvl,
         auto now_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm now_tm = *std::localtime(&now_time_t);
         std::ostringstream oss;
-        oss << " " << std::put_time(&now_tm, "%Y-%m-%d");
+        oss << ",DATE=" << std::put_time(&now_tm, "%Y-%m-%d");
         prefix += oss.str();
     }
     if (flags & static_cast<long unsigned int>(flags::time))
@@ -290,19 +309,27 @@ std::string log_to_string(const level &lvl,
         auto now_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm now_tm = *std::localtime(&now_time_t);
         std::ostringstream oss;
-        oss << " " << std::put_time(&now_tm, "%H:%M:%S");
+        oss << ",TIME=" << std::put_time(&now_tm, "%H:%M:%S");
         prefix += oss.str();
     }
+    if (flags & static_cast<long unsigned int>(flags::pid))
+    {
+        prefix += std::format(",PID={}", getpid());
+    }
+    if (flags & static_cast<long unsigned int>(flags::tid))
+    {
+        prefix += std::format(",TID={}", std::this_thread::get_id());
+    }
 
-    if (prefix.size() > 0)
-        prefix += ": ";
-    std::string formatted_string = std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
+    if (flags > 0)
+        prefix += "] ";
+    std::string formatted_string =
+        std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
     return std::format("{}{}", prefix, formatted_string);
 }
 
 template <typename... Args>
-void log_to_stdout(const level &lvl, const std::string &fmt,
-                   Args&&... args)
+void log_to_stdout(const level &lvl, const std::string &fmt, Args &&...args)
 {
     if (get_level() > lvl)
         return;
@@ -315,8 +342,7 @@ inline void log_to_stdout(const std::string &str)
 }
 
 template <typename... Args>
-void log_to_file(const level &lvl, const std::string &fmt,
-                 Args&&... args)
+void log_to_file(const level &lvl, const std::string &fmt, Args &&...args)
 {
     if (get_level() > lvl && !logger::log_file.is_open())
         return;
@@ -331,8 +357,7 @@ void log_to_file(const std::string &str)
 
 #ifdef OAK_USE_SOCKETS
 template <typename... Args>
-void log_to_socket(const level &lvl, const std::string &fmt,
-                   Args&&... args)
+void log_to_socket(const level &lvl, const std::string &fmt, Args &&...args)
 {
     if (get_level() > lvl || logger::log_socket < 0)
         return;
@@ -349,7 +374,7 @@ void log_to_socket(const std::string &str)
 #endif
 
 template <typename... Args>
-void log(const level &lvl, const std::string &fmt, Args&&... args)
+void log(const level &lvl, const std::string &fmt, Args &&...args)
 {
     if (get_level() > lvl)
         return;
@@ -444,37 +469,37 @@ set_socket(const std::string &addr, short unsigned int port,
 #endif
 
 template <typename... Args>
-inline void out(const std::string &fmt, Args&&... args)
+inline void out(const std::string &fmt, Args &&...args)
 {
     log(oak::level::output, fmt, args...);
 }
 
 template <typename... Args>
-inline void debug(const std::string &fmt, Args&&... args)
+inline void debug(const std::string &fmt, Args &&...args)
 {
     log(oak::level::debug, fmt, args...);
 }
 
 template <typename... Args>
-inline void info(const std::string &fmt, Args&&... args)
+inline void info(const std::string &fmt, Args &&...args)
 {
     log(oak::level::info, fmt, args...);
 }
 
 template <typename... Args>
-inline void warning(const std::string &fmt, Args&&... args)
+inline void warning(const std::string &fmt, Args &&...args)
 {
     log(oak::level::warning, fmt, args...);
 }
 
 template <typename... Args>
-inline void error(const std::string &fmt, Args&&... args)
+inline void error(const std::string &fmt, Args &&...args)
 {
     log(oak::level::error, fmt, args...);
 }
 
 template <typename... Args>
-inline void output(const std::string &fmt, Args&&... args)
+inline void output(const std::string &fmt, Args &&...args)
 {
     log(oak::level::output, fmt, args...);
 }
@@ -536,6 +561,10 @@ template <> struct std::formatter<oak::flags>
             return format_to(ctx.out(), "DATE");
         case oak::flags::time:
             return format_to(ctx.out(), "TIME");
+        case oak::flags::pid:
+            return format_to(ctx.out(), "PID");
+        case oak::flags::tid:
+            return format_to(ctx.out(), "TID");
         default:
             return format_to(ctx.out(), "UNKNOWN");
         }

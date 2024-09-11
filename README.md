@@ -1,6 +1,6 @@
 # oak - your favourite logger
 
-This is a simple, header-only, C++23 logger with no external dependencies.
+Oak is a feature-rich, header-only C++23 logger with no external dependencies.
 This code was originally forked from the logger of [Brenta Engine](https://github.com/San7o/Brenta-Engine)
 in order to develop it indipendently from the engine.
 
@@ -22,13 +22,13 @@ oak::info("hello {}!", name);
 INFO: hello user!
 ```
 
-### Add data
+### Add metadata
 ```c++
 oak::set_flags(oak::flags::level, oak::flags::date);
 ```
 ```bash
 # example output
-INFO 2024-09-11 11:32:09: nice
+[LEVEL=INFO,DATE=2024-09-11] nice
 ```
 
 ### Log to file
@@ -50,7 +50,7 @@ oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
 You can save the settings in a file with `key=value,...`, like this:
 ```
 level = debug
-flags = level, date, time
+flags = level, date, time, pid, tid
 json = true
 file = tests/log_test.txt
 ```
@@ -58,7 +58,7 @@ And use this settings like so:
 ```c++
 auto r = oak::settings_file("settings.oak");
 if (!r.has_value())
-    oak::error("Error opening setting file: {}", "noob");
+    oak::error("Error opening setting file: {}", r.error());
 ```
 
 ## Features
@@ -71,7 +71,7 @@ if (!r.has_value())
 
 - [x] log to net sockets
 
-- [x] log verbose level
+- [x] log metadata
 
 - [x] settings file
 
@@ -100,6 +100,10 @@ if (!r.has_value())
 - `date`
 
 - `time`
+
+- `pid`
+
+- `tid`
 
 # TODO
 

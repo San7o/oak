@@ -3,3 +3,33 @@ INFO: just level
 INFO 2024-09-11 14:10:49: level, date and time
 INFO: hello socket
 INFO: hello socket
+LOG=no flags
+LEVEL=INFO LOG=just level
+LEVEL=INFO DATE=2024-09-11 TIME=14:25:22 LOG=level, date and time
+LEVEL=INFO LOG=hello socket
+LEVEL=INFO LOG=hello socket
+LOG=no flags
+LEVEL=INFO, LOG=just level
+LEVEL=INFO, DATE=2024-09-11, TIME=14:26:49, LOG=level, date and time
+LEVEL=INFO, LOG=hello socket
+LEVEL=INFO, LOG=hello socket
+LOG=no flags
+LEVEL=INFO, LOG=just level
+LEVEL=INFO, DATE=2024-09-11, TIME=14:27:06, LOG=level, date and time
+LEVEL=INFO, LOG=hello socket
+LEVEL=INFO, LOG=hello socket
+ ] no flags
+ [LEVEL=INFO] just level
+ [LEVEL=INFO,DATE=2024-09-11,TIME=14:29:26] level, date and time
+ [LEVEL=INFO] hello socket
+ [LEVEL=INFO] hello socket
+ no flags
+ [LEVEL=INFO] just level
+ [LEVEL=INFO,DATE=2024-09-11,TIME=14:30:28] level, date and time
+ [LEVEL=INFO] hello socket
+ [LEVEL=INFO] hello socket
+ no flags
+ [LEVEL=INFO] just level
+ [LEVEL=INFO,DATE=2024-09-11,TIME=14:30:55] level, date and time
+ [LEVEL=INFO] hello socket
+ [LEVEL=INFO] hello socket

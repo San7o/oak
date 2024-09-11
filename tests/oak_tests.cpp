@@ -30,7 +30,7 @@ void test_settings_file()
 
     ret = oak::settings_file("tests/test_settings1.oak");
     ASSERT(ret.has_value());
-    
+
     ASSERT_EQ(oak::get_level(), oak::level::debug);
     ASSERT_EQ(oak::get_flags(), 7);
     ASSERT_EQ(oak::get_json_serialization(), true);
@@ -105,8 +105,8 @@ void test_unix_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 19);
-    ASSERT_EQ(std::string(buf, n), "INFO: hello socket\n");
+    ASSERT_EQ(n, 29);
+    ASSERT_EQ(std::string(buf, n), "[LEVEL=INFO] hello socket\n");
 
     t.join();
     oak::close_socket();
@@ -139,8 +139,8 @@ void test_net_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 19);
-    ASSERT_EQ(std::string(buf, n), "INFO: hello socket\n");
+    ASSERT_EQ(n, 29);
+    ASSERT_EQ(std::string(buf, n), "[LEVEL=INFO] hello socket\n");
 
     t.join();
     oak::close_socket();
