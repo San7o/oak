@@ -55,7 +55,7 @@
 
 #define OAK_DEBUG(...) oak::log(oak::level::debug, __VA_ARGS__)
 #define OAK_INFO(...) oak::log(oak::level::info, __VA_ARGS__)
-#define OAK_WARNING(...) oak::log(oak::level::warning, __VA_ARGS__)
+#define OAK_WARN(...) oak::log(oak::level::warn, __VA_ARGS__)
 #define OAK_ERROR(...) oak::log(oak::level::error, __VA_ARGS__)
 #define OAK_OUTPUT(...) oak::log(oak::level::output, __VA_ARGS__)
 
@@ -66,7 +66,7 @@ enum class level
 {
     debug = 0,
     info,
-    warning,
+    warn,
     error,
     output,
     disabled,
@@ -127,7 +127,7 @@ struct logger
 
 long unsigned int logger::flag_bits = 1;
 bool logger::json_serialize = false;
-oak::level logger::log_level = oak::level::warning;
+oak::level logger::log_level = oak::level::warn;
 std::ofstream logger::log_file;
 std::deque<queue_element> logger::log_queue;
 int logger::log_socket = -1;
@@ -160,14 +160,27 @@ inline void constexpr set_level(const oak::level &lvl)
     logger::log_level = lvl;
 }
 
-void constexpr set_file(const std::string &file)
+[[nodiscard]] std::expected<int, std::string> constexpr set_file(const std::string &file)
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
+    if (logger::log_file.is_open())
+    {
+        logger::log_file.close();
+    }
+    if (!std::filesystem::exists(file))
+    {
+        return std::unexpected("File does not exist");
+    }
     logger::log_file.open(file, std::ios::app);
     if (!logger::log_file.is_open())
     {
-        std::cout << "Error: Could not open log file" << std::endl;
+        return std::unexpected("Could not open log file");
     }
+    if (!logger::log_file.good())
+    {
+        return std::unexpected("Error opening log file");
+    }
+    return 0;
 }
 
 void constexpr set_json_serialization(bool json)
@@ -185,7 +198,7 @@ bool constexpr get_json_serialization()
 void constexpr close_file()
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
-    if (is_file_open())
+    if (logger::log_file.is_open())
         logger::log_file.close();
 }
 
@@ -310,8 +323,8 @@ void stop_writer()
                 set_level(level::debug);
             else if (value == "info")
                 set_level(level::info);
-            else if (value == "warning")
-                set_level(level::warning);
+            else if (value == "warn")
+                set_level(level::warn);
             else if (value == "error")
                 set_level(level::error);
             else if (value == "output")
@@ -368,7 +381,11 @@ void stop_writer()
         }
         else if (key == "file")
         {
-            set_file(value);
+            auto exp = set_file(value);
+            if (!exp.has_value())
+            {
+                return std::unexpected("Could not open file");
+            }
         }
         else
         {
@@ -388,7 +405,7 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
     std::string prefix = "";
     if (flags > 0 && !json)
     {
-        prefix += "[";
+        prefix += "[ ";
     }
     if (json)
     {
@@ -399,7 +416,7 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
         if (json)
             prefix += std::format("\"level\": \"{}\"", lvl);
         else
-            prefix += std::format("level={}", lvl);
+            prefix += std::format("level={} ", lvl);
     }
     if (flags & static_cast<long unsigned int>(flags::date))
     {
@@ -411,7 +428,7 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
             oss << ", \"date\": \"" << std::put_time(&now_tm, "%Y-%m-%d")
                 << "\"";
         else
-            oss << ",date=" << std::put_time(&now_tm, "%Y-%m-%d");
+            oss << "date=" << std::put_time(&now_tm, "%Y-%m-%d") << " ";
         prefix += oss.str();
     }
     if (flags & static_cast<long unsigned int>(flags::time))
@@ -424,7 +441,7 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
             oss << ", \"time\": \"" << std::put_time(&now_tm, "%H:%M:%S")
                 << "\"";
         else
-            oss << ",time=" << std::put_time(&now_tm, "%H:%M:%S");
+            oss << "time=" << std::put_time(&now_tm, "%H:%M:%S") << " ";
         prefix += oss.str();
     }
     if (flags & static_cast<long unsigned int>(flags::pid))
@@ -432,7 +449,7 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
         if (json)
             prefix += ", \"pid\": " + std::to_string(getpid());
         else
-            prefix += std::format(",pid={}", getpid());
+            prefix += std::format("pid={} ", getpid());
     }
     if (flags & static_cast<long unsigned int>(flags::tid))
     {
@@ -441,7 +458,7 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
                       + std::to_string(std::hash<std::thread::id>{}(
                           std::this_thread::get_id()));
         else
-            prefix += std::format(",tid={}", std::this_thread::get_id());
+            prefix += std::format("tid={} ", std::this_thread::get_id());
     }
 
     if (flags > 0 && !json)
@@ -618,9 +635,9 @@ inline void info(const std::string &fmt, Args &&...args)
 }
 
 template <typename... Args>
-inline void warning(const std::string &fmt, Args &&...args)
+inline void warn(const std::string &fmt, Args &&...args)
 {
-    log(oak::level::warning, fmt, args...);
+    log(oak::level::warn, fmt, args...);
 }
 
 template <typename... Args>
@@ -643,14 +660,9 @@ inline void async(const level &lvl, const std::string &fmt, Args &&...args)
 
 void flush()
 {
+    std::lock_guard<std::mutex> lock(logger::log_mutex);
     std::cout << std::flush;
-    if (is_file_open())
-        logger::log_file << std::flush;
-}
-
-void flush_file()
-{
-    if (is_file_open())
+    if (logger::log_file.is_open())
         logger::log_file << std::flush;
 }
 
@@ -670,8 +682,8 @@ template <> struct std::formatter<oak::level>
         {
         case oak::level::error:
             return format_to(ctx.out(), "error");
-        case oak::level::warning:
-            return format_to(ctx.out(), "warning");
+        case oak::level::warn:
+            return format_to(ctx.out(), "warn");
         case oak::level::info:
             return format_to(ctx.out(), "info");
         case oak::level::debug:

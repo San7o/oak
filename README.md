@@ -111,7 +111,7 @@ if (!r.has_value())
 
 - `info`
 
-- `warning`
+- `warn`
 
 - `error`
 
@@ -134,7 +134,5 @@ if (!r.has_value())
 # TODO
 
 - fuzzer
-
-- more tests
 
 - documentation

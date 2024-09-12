@@ -11,6 +11,33 @@
 int errors = 0;
 int num_assertions = 0;
 
+void test_getters()
+{
+    // default values
+    auto level = oak::get_level();
+    ASSERT(level == oak::level::warn);
+    auto flags = oak::get_flags();
+    ASSERT(flags == 1);
+    auto json = oak::get_json_serialization();
+    ASSERT(json == false);
+    ASSERT(oak::is_file_open() == false);
+}
+
+void test_level()
+{
+    oak::set_level(oak::level::debug);
+    ASSERT_EQ(oak::get_level(), oak::level::debug);
+    oak::set_level(oak::level::info);
+    ASSERT_EQ(oak::get_level(), oak::level::info);
+    oak::set_level(oak::level::warn);
+    ASSERT_EQ(oak::get_level(), oak::level::warn);
+    oak::set_level(oak::level::error);
+    ASSERT_EQ(oak::get_level(), oak::level::error);
+    oak::set_level(oak::level::output);
+    ASSERT_EQ(oak::get_level(), oak::level::output);
+    oak::set_level(oak::level::debug);
+}
+
 void test_flags()
 {
     oak::set_flags(oak::flags::level);
@@ -21,6 +48,7 @@ void test_flags()
     ASSERT_EQ(oak::get_flags(), 7);
     oak::set_flags(oak::flags::time);
     ASSERT_EQ(oak::get_flags(), 4);
+    oak::set_flags(oak::flags::level);
 }
 
 void test_settings_file()
@@ -34,12 +62,44 @@ void test_settings_file()
     ASSERT_EQ(oak::get_level(), oak::level::debug);
     ASSERT_EQ(oak::get_flags(), 31);
     ASSERT_EQ(oak::get_json_serialization(), true);
+    ASSERT_EQ(oak::is_file_open(), true);
 
     ret = oak::settings_file("tests/test_settings2.oak");
     ASSERT(ret.has_value());
     ASSERT_EQ(oak::get_level(), oak::level::info);
     ASSERT_EQ(oak::get_flags(), 2);
     ASSERT_EQ(oak::get_json_serialization(), false);
+    ASSERT_EQ(oak::is_file_open(), true);
+}
+
+void test_file()
+{
+    auto exp = oak::set_file("/home/root/prova");
+    ASSERT(!exp.has_value());
+
+    if (std::filesystem::exists("tests/test_out.txt"))
+    {
+        std::filesystem::remove("tests/test_out.txt");
+    }
+
+    // Create the file
+    std::ofstream file("tests/test_out.txt");
+    file.close();
+
+    exp = oak::set_file("tests/test_out.txt");
+    ASSERT(exp.has_value());
+    oak::log_to_file(oak::level::info, "hello file");
+
+    // give time to write
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(200ms);
+
+    oak::close_file();
+    ASSERT(std::filesystem::exists("tests/test_out.txt"));
+    ASSERT(std::filesystem::file_size("tests/test_out.txt") > 0);
+
+    // clean up
+    std::filesystem::remove("tests/test_out.txt");
 }
 
 void test_log()
@@ -53,6 +113,16 @@ void test_log()
     oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
     oak::log(oak::level::info, "level, date and time");
     oak::set_json_serialization(false);
+}
+
+void test_macros()
+{
+    oak::set_flags(oak::flags::level);
+    OAK_DEBUG("debug {}", "macro");
+    OAK_INFO("info {}", "macro");
+    OAK_WARN("warn {}", "macro");
+    OAK_ERROR("error {}", "macro");
+    OAK_OUTPUT("output {}", "macro");
 }
 
 void test_async()
@@ -112,8 +182,8 @@ void test_unix_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 26);
-    ASSERT_EQ(std::string(buf, n), "[level=info] hello socket\n");
+    ASSERT_EQ(n, 28);
+    ASSERT_EQ(std::string(buf, n), "[ level=info ] hello socket\n");
 
     t.join();
     oak::close_socket();
@@ -146,8 +216,8 @@ void test_net_socket()
     char buf[1024];
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
-    ASSERT_EQ(n, 26);
-    ASSERT_EQ(std::string(buf, n), "[level=info] hello socket\n");
+    ASSERT_EQ(n, 28);
+    ASSERT_EQ(std::string(buf, n), "[ level=info ] hello socket\n");
 
     t.join();
     oak::close_socket();
@@ -164,9 +234,13 @@ int main()
 #endif
     std::cout << "\n";
 
+    test_getters();
+    test_level();
     test_flags();
     test_settings_file();
+    test_file();
     test_log();
+    test_macros();
     test_async();
 #ifdef OAK_USE_SOCKETS
 #ifdef __unix__

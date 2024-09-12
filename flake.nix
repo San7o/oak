@@ -30,12 +30,14 @@
             valgrind                # memory debugger
             clang-tools             # code formatting
             gdb                     # debugger
+            doxygen                 # documentation
+            libz.dev                # compression
           ];
           shellHook = ''
               zsh
           '';
 
-          LD_LIBRARY_PATH="${pkgsFor.${system}.libz}/lib";
+          LD_LIBRARY_PATH="${pkgsFor.${system}.libz.dev}";
           CXX="${pkgsFor.${system}.gcc14}/bin/g++";
         };
     });
