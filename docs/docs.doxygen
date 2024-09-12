@@ -220,4 +220,12 @@
 /// flags = level, date, time, pid, tid
 /// file = tests/log_test.txt
 /// ```
+/// \section async Asynchronous logging
 ///
+/// By default, the library logs synchronously, meaning that the log message is
+/// formatted immediatly and sent to the writer's queue. You can format the
+/// message asynchronously by using the `oak::async()` function.
+///
+/// ```cpp
+/// oak::async(oak::level::info, "Hello, {}!", name);
+/// ```

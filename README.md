@@ -52,22 +52,22 @@ The logger uses a writer to read the message queue and correctly
 writes the output in the specified location, allowing buffering.
 ```c++
 oak::init_writer();
-// Do stuff
+// Do stuff and have fun here
 oak::stop_writer();
 ```
 
 ### How to log
 Log something with the level `info`:
 ```c++
-oak::info("hello {}!", name);
+oak::info("i love {}!", what);
 ```
 ```bash
 # output
-[level=info] hello user!
+[level=info] i love oak!
 ```
 Or use macros if you prefer:
 ```c++
-OAK_INFO("hello {}!", name);
+OAK_INFO("add a {} to this library!", star);
 ```
 
 ### Set the Log level
@@ -103,7 +103,7 @@ The library uses `std::expected` to handle errors.
 // unix sockets
 oak::set_socket("/tmp/a-socket");
 // net socket, defaults to tcp
-oak::set_socket("127.0.0.1", 1234);
+oak::set_socket("127.0.0.1", 1337);
 // udp net socket
 oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
 ```
@@ -120,6 +120,11 @@ And use this settings like so:
 auto r = oak::settings_file("settings.oak");
 if (!r.has_value())
     oak::error("Error opening setting file: {}", r.error());
+```
+
+### Async logging
+```c++
+oak::async(oak::level:debug, "Time travelling");
 ```
 
 # Contributing
