@@ -151,8 +151,9 @@ doxygen doxygen.conf
 ## Formatting
 
 The library uses `clang-format` for formatting, the rules
-are saved in [.clang-format](./.clang-format). To format
-the code, run:
+are saved in [.clang-format](./.clang-format).
+
+To format the code, run:
 ```bash
 make format
 ```
