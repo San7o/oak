@@ -31,11 +31,6 @@ If you're ready to contribute code:
 - Push the branch to your forked repo.
 - Open a pull request against the `dev` branch with a detailed description of your changes.
 
-### Discord
-
-Once the project gets officially released, a discord server will be created for anyone
-interested in the project.
-
 ### License
 
 By contributing, you agree that your contributions will be licensed under the project's MIT License.
