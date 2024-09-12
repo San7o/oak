@@ -81,7 +81,7 @@ oak::set_level(oak::level::debug);
 oak::set_flags(oak::flags::level, oak::flags::date);
 ```
 ```bash
-// example output
+# example output
 [level=info,date=2024-09-11] nice
 ```
 
@@ -92,8 +92,11 @@ You can also serialize the log adding the flag `oak::flags::json`:
 
 ### Log to file
 ```c++
-oak::set_file("/tmp/my-log");
+auto file = oak::set_file("/tmp/my-log");
+if (!file.has_value())
+    oak::error("Error opening setting file: {}", file.error());
 ```
+The library uses `std::expected` to handle errors.
 
 ### Log to socket
 ```c++
@@ -110,7 +113,6 @@ You can save the settings in a file with `key=value,...`, like this:
 ```
 level = debug
 flags = level, date, time, pid, tid
-json = true
 file = tests/log_test.txt
 ```
 And use this settings like so:
@@ -122,14 +124,32 @@ if (!r.has_value())
 
 # Contributing
 Any new contributor is welcome to this project. Please
-read [CONTRIBUTING][./CONTRIBUTING.md] for intructions
+read [CONTRIBUTING](./CONTRIBUTING.md) for intructions
 on how to contribute.
+
+## Testing
+
+The test project uses cmake. To build and run the tests, run:
+```c++
+cmake -Bbuild
+cmake --build build -j 4
+./build/tests
+```
 
 ## Documentation
 
 The project's documentation uses doxygen, to generate the html documentation locally, please run:
 ```bash
 doxygen doxygen.conf
+```
+
+## Formatting
+
+The library uses `clang-format` for formatting, the rules
+are saved in [.clang-format](./.clang-format). To format
+the code, run:
+```bash
+make format
 ```
 
 ## License
