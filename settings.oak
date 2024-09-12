@@ -1,3 +1,2 @@
 level = debug
 flags = level, date, time, tid, pid
-json = true

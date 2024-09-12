@@ -1,4 +1,3 @@
 level = debug
 flags = level, date, time, pid, tid
-json = true
 file = tests/log_test.txt

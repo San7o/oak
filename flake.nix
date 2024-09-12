@@ -32,6 +32,7 @@
             gdb                     # debugger
             doxygen                 # documentation
             libz.dev                # compression
+            llvmPackages.libcxxClang # clang
           ];
           shellHook = ''
               zsh

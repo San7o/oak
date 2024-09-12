@@ -18,8 +18,6 @@ void test_getters()
     ASSERT(level == oak::level::warn);
     auto flags = oak::get_flags();
     ASSERT(flags == 1);
-    auto json = oak::get_json_serialization();
-    ASSERT(json == false);
     ASSERT(oak::is_file_open() == false);
 }
 
@@ -61,14 +59,12 @@ void test_settings_file()
 
     ASSERT_EQ(oak::get_level(), oak::level::debug);
     ASSERT_EQ(oak::get_flags(), 31);
-    ASSERT_EQ(oak::get_json_serialization(), true);
     ASSERT_EQ(oak::is_file_open(), true);
 
     ret = oak::settings_file("tests/test_settings2.oak");
     ASSERT(ret.has_value());
     ASSERT_EQ(oak::get_level(), oak::level::info);
     ASSERT_EQ(oak::get_flags(), 2);
-    ASSERT_EQ(oak::get_json_serialization(), false);
     ASSERT_EQ(oak::is_file_open(), true);
 }
 
@@ -104,15 +100,13 @@ void test_file()
 
 void test_log()
 {
-    oak::set_json_serialization(true);
     oak::set_level(oak::level::debug);
-    oak::set_flags(oak::flags::none);
+    oak::set_flags(oak::flags::json);
     oak::log(oak::level::info, "no flags");
     oak::set_flags(oak::flags::level);
     oak::log(oak::level::info, "just level");
     oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
     oak::log(oak::level::info, "level, date and time");
-    oak::set_json_serialization(false);
 }
 
 void test_macros()

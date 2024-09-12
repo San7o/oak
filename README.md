@@ -1,10 +1,51 @@
-# oak - your favourite logger
+![oak-banner](./docs/oak_banner.jpeg)
 
-Oak is a feature-rich, header-only thread-safe C++23 logger with no external dependencies.
+Oak is a lightweight and robust logging library for C++23, designed to
+simplify logging in modern C++ applications. As a single-header library,
+it requires no additional dependencies—simply include it in your project
+and start logging immediately.
+
+Built with modern C++ practices, Oak leverages advanced language
+features to offer high performance and flexibility. Key features include:
+- **Thread-Safety**: Oak ensures safe logging in multi-threaded environments,
+                 preventing data races and synchronization issues.
+- **Minimal Overhead**: Optimized for performance, Oak introduces minimal
+                 runtime overhead, ensuring it doesn't compromise the speed
+                 of your application.
+- **Simplicity and Ease of Use**: Oak's API is intuitive, allowing you to integrate
+                 it seamlessly into your project without a steep learning curve.
+- **Customization**: Oak offers a range of customization options, allowing you to
+                 tailor the logging experience to your specific requirements.
+
 This code was originally forked from the logger of [Brenta Engine](https://github.com/San7o/Brenta-Engine)
 in order to develop it indipendently from the engine.
 
-## Quick Tour
+## Features
+
+- **multiple logging levels**
+
+- **log to file**
+
+- **log to unix sockets**
+
+- **log to net sockets**
+
+- **log metadata**
+
+- **settings file**
+
+- **json serialization**
+
+- **thread safety**
+
+- **log buffering**
+
+- **async logging**
+
+# Quick Tour
+
+To learn about all the functionalities, please visit the [html documentation](https://san7o.github.io/brenta-engine-documentation/oak/v1.0/). Here a quick guide will be made to
+showcase the library's api.
 
 ### The writer
 The logger uses a writer to read the message queue and correctly
@@ -40,8 +81,13 @@ oak::set_level(oak::level::debug);
 oak::set_flags(oak::flags::level, oak::flags::date);
 ```
 ```bash
-# example output
+// example output
 [level=info,date=2024-09-11] nice
+```
+
+You can also serialize the log adding the flag `oak::flags::json`:
+```
+{ "level": "output", "date": "2024-09-11", "time": "15:35:20", "pid": 30744, "tid": 9992229128130766714, "message": "Hello Mario" }
 ```
 
 ### Log to file
@@ -51,20 +97,12 @@ oak::set_file("/tmp/my-log");
 
 ### Log to socket
 ```c++
-# unix sockets
+// unix sockets
 oak::set_socket("/tmp/a-socket");
-# net socket, defaults to tcp
+// net socket, defaults to tcp
 oak::set_socket("127.0.0.1", 1234);
-# udp net socket
+// udp net socket
 oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
-```
-
-### Json serialization
-```c++
-oak::set_json_serialization(true);
-```
-```
-{ "level": "output", "date": "2024-09-11", "time": "15:35:20", "pid": 30744, "tid": 9992229128130766714, "message": "Hello Mario" }
 ```
 
 ### Settings file
@@ -82,57 +120,18 @@ if (!r.has_value())
     oak::error("Error opening setting file: {}", r.error());
 ```
 
-## Features
+# Contributing
+Any new contributor is welcome to this project. Please
+read [CONTRIBUTING][./CONTRIBUTING.md] for intructions
+on how to contribute.
 
-- [x] multiple logging levels
+## Documentation
 
-- [x] log to file
+The project's documentation uses doxygen, to generate the html documentation locally, please run:
+```bash
+doxygen doxygen.conf
+```
 
-- [x] log to unix sockets
+## License
 
-- [x] log to net sockets
-
-- [x] log metadata
-
-- [x] settings file
-
-- [x] json serialization
-
-- [x] thread safe
-
-- [x] log buffering
-
-- [x] async logging
-
-
-## Supported log levels
-
-- `debug`
-
-- `info`
-
-- `warn`
-
-- `error`
-
-- `ouput`
-
-- `disabled`
-
-## Additional log info
-
-- `level`
-
-- `date`
-
-- `time`
-
-- `pid`
-
-- `tid`
-
-# TODO
-
-- fuzzer
-
-- documentation
+The library is licensed under [MIT](./LICENSE) license.

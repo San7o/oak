@@ -45,12 +45,17 @@
 #include <unistd.h>
 
 #ifdef OAK_USE_SOCKETS
-#include <arpa/inet.h>
 #include <cstring>
 #include <netinet/ip.h>
+#include <unistd.h>
+#ifdef __unix__
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <sys/un.h>
-#include <unistd.h>
+#endif
+#ifdef _WIN32
+#include <winsock2.h>
+#endif
 #endif
 
 #define OAK_DEBUG(...) oak::log(oak::level::debug, __VA_ARGS__)
@@ -88,6 +93,7 @@ enum class flags
     time = 4,
     pid = 8,
     tid = 16,
+    json = 32
 };
 
 enum class destination
@@ -111,7 +117,6 @@ struct queue_element
 struct logger
 {
     static long unsigned int flag_bits;
-    static bool json_serialize;
     static level log_level;
     static std::ofstream log_file;
     static std::deque<queue_element> log_queue;
@@ -126,7 +131,6 @@ struct logger
 };
 
 long unsigned int logger::flag_bits = 1;
-bool logger::json_serialize = false;
 oak::level logger::log_level = oak::level::warn;
 std::ofstream logger::log_file;
 std::deque<queue_element> logger::log_queue;
@@ -136,31 +140,31 @@ std::condition_variable logger::log_cv;
 std::atomic<bool> logger::close_writer = false;
 std::optional<std::jthread> logger::writer_thread;
 
-inline level constexpr get_level()
+inline level get_level()
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
     return logger::log_level;
 }
 
-inline long unsigned int constexpr get_flags()
+inline long unsigned int get_flags()
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
     return logger::flag_bits;
 }
 
-inline bool constexpr is_file_open()
+inline bool is_file_open()
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
     return logger::log_file.is_open();
 }
 
-inline void constexpr set_level(const oak::level &lvl)
+inline void set_level(const oak::level &lvl)
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
     logger::log_level = lvl;
 }
 
-[[nodiscard]] std::expected<int, std::string> constexpr set_file(const std::string &file)
+[[nodiscard]] std::expected<int, std::string> set_file(const std::string &file)
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
     if (logger::log_file.is_open())
@@ -183,19 +187,7 @@ inline void constexpr set_level(const oak::level &lvl)
     return 0;
 }
 
-void constexpr set_json_serialization(bool json)
-{
-    std::lock_guard<std::mutex> lock(logger::log_mutex);
-    logger::json_serialize = json;
-}
-
-bool constexpr get_json_serialization()
-{
-    std::lock_guard<std::mutex> lock(logger::log_mutex);
-    return logger::json_serialize;
-}
-
-void constexpr close_file()
+void close_file()
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
     if (logger::log_file.is_open())
@@ -203,7 +195,7 @@ void constexpr close_file()
 }
 
 #ifdef OAK_USE_SOCKETS
-void constexpr close_socket()
+void close_socket()
 {
     std::lock_guard<std::mutex> lock(logger::log_mutex);
     if (logger::log_socket > 0)
@@ -220,30 +212,35 @@ void add_to_queue(const std::string &str, const destination &d)
     logger::log_cv.notify_one();
 }
 
-template <typename... Args> void constexpr set_flags(flags flg, Args... args)
-{
-    {
-        std::lock_guard<std::mutex> lock(logger::log_mutex);
-        logger::flag_bits = 0;
-    }
-    add_flags(flg, args...);
-}
-
-template <typename... Args> void constexpr add_flags(flags flg, Args... args)
+template <typename... Args> void add_flags(flags flg, Args&&... args)
 {
     {
         std::lock_guard<std::mutex> lock(logger::log_mutex);
         logger::flag_bits |= static_cast<long unsigned int>(flg);
     }
-    if constexpr (sizeof...(args) > 0)
+    if (sizeof...(args) > 0)
     {
         add_flags(args...);
     }
 }
 
 // Base case
-void constexpr add_flags()
+template <typename... Args>
+void add_flags(flags flg)
 {
+    {
+        std::lock_guard<std::mutex> lock(logger::log_mutex);
+        logger::flag_bits |= static_cast<long unsigned int>(flg);
+    }
+}
+
+template <typename... Args> void set_flags(flags flg, Args&& ... args)
+{
+    {
+        std::lock_guard<std::mutex> lock(logger::log_mutex);
+        logger::flag_bits = 0;
+    }
+    add_flags(flg, args...);
 }
 
 void writer()
@@ -291,8 +288,8 @@ void stop_writer()
     logger::writer_thread->join();
 }
 
-[[nodiscard]] std::expected<int, std::string> constexpr settings_file(
-    const std::string &file)
+[[nodiscard]] std::expected<int, std::string> constexpr
+settings_file(const std::string &file)
 {
     if (file.size() == 0)
         return std::unexpected("Settings file path is empty");
@@ -351,6 +348,8 @@ void stop_writer()
                     add_flags(flags::pid);
                 else if (flag == "tid")
                     add_flags(flags::tid);
+                else if (flag == "json")
+                    add_flags(flags::json);
                 else
                     return std::unexpected("Invalid flags in file");
             }
@@ -367,17 +366,10 @@ void stop_writer()
                 add_flags(flags::pid);
             else if (value == "tid")
                 add_flags(flags::tid);
+            else if (value == "json")
+                add_flags(flags::json);
             else
                 return std::unexpected("Invalid flags in file");
-        }
-        else if (key == "json")
-        {
-            if (value == "true")
-                set_json_serialization(true);
-            else if (value == "false")
-                set_json_serialization(false);
-            else
-                return std::unexpected("Invalid json value in file");
         }
         else if (key == "file")
         {
@@ -401,7 +393,9 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
                           Args &&...args)
 {
     auto flags = get_flags();
-    auto json = get_json_serialization();
+    bool json = false;
+    if (flags & static_cast<long unsigned int>(flags::json))
+        json = true;
     std::string prefix = "";
     if (flags > 0 && !json)
     {
@@ -461,9 +455,9 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
             prefix += std::format("tid={} ", std::this_thread::get_id());
     }
 
-    if (flags > 0 && !json)
+    if (flags - static_cast<long unsigned int>(flags::json) > 0 && !json)
         prefix += "] ";
-    if (flags > 0 && json)
+    if (flags - static_cast<long unsigned int>(flags::json) > 0 && json)
         prefix += ", ";
     std::string formatted_string =
         std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
@@ -655,7 +649,7 @@ inline void output(const std::string &fmt, Args &&...args)
 template <typename... Args>
 inline void async(const level &lvl, const std::string &fmt, Args &&...args)
 {
-    (void)std::async([lvl, fmt, args...]() { log(lvl, fmt, args...); });
+    (void) std::async([lvl, fmt, args...]() { log(lvl, fmt, args...); });
 }
 
 void flush()

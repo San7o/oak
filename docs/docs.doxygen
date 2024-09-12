@@ -1,3 +1,223 @@
-/**
- * Test
- */
+// vim: set filetype=cpp :
+/// 
+/// \mainpage Oak Documentation
+///
+/// \image html oak_banner.jpeg
+///
+/// Welcome to the official Oak documentation. This guide provides comprehensive
+/// information and practical examples to help you get started with
+/// the Oak logging library.
+/// 
+/// \section Overview
+///
+/// Oak is a lightweight and robust logging library for C++23, designed to
+/// simplify logging in modern C++ applications. As a single-header library,
+/// it requires no additional dependencies—simply include it in your project
+/// and start logging immediately.
+/// 
+/// Built with modern C++ practices, Oak leverages advanced language
+/// features to offer high performance and flexibility. Key features include:
+/// - **Thread-Safety**: Oak ensures safe logging in multi-threaded environments,
+///                  preventing data races and synchronization issues.
+/// - **Minimal Overhead**: Optimized for performance, Oak introduces minimal
+///                  runtime overhead, ensuring it doesn't compromise the speed
+///                  of your application.
+/// - **Simplicity and Ease of Use**: Oak's API is intuitive, allowing you to integrate
+///                  it seamlessly into your project without a steep learning curve.
+/// - **Customization**: Oak offers a range of customization options, allowing you to
+///                  tailor the logging experience to your specific requirements.
+///
+/// In the following sections, we'll explore Oak's functionality in greater detail
+/// and demonstrate its capabilities through practical examples.
+///
+/// \section start Just start logging
+///
+/// To start logging with Oak, simply include the `oak.hpp` header file in your project.
+/// That's about it for basic usage.
+///
+/// ```cpp
+/// #include <oak.hpp>
+/// ```
+///
+/// The library uses the `oak` namespace, so you can
+/// access its functionality by prefixing it with `oak::`. All names are in snake_case.
+/// 
+/// ```cpp
+/// using namespace oak;
+/// ```
+///
+/// If you want to log to a **socket** (which will be covered more deeply later) you must
+/// compile your program with `OAK_USE_SOCKET`, this is done because you might
+/// not want to include the socket libraries in your project if you don't need them.
+///
+/// ```sh
+/// # example using cmake
+/// cmake -B build -DOAK_USE_SOCKET=ON
+/// ```
+///
+/// \section writer Starting the writer
+///
+/// The logger uses a writer thread to write the logs to the desired output. When a 
+/// new message is created, the message is first evaluated into a `std::string` either
+/// synchronously or asynchronously, depending on which method you use. It is
+/// then safely added to a queue, which is read by the writer thread. As soon
+/// as you add the message, the writer thread will be woken up and It will start writing the
+/// messages to the output until the queue is empty, without blocking the main thread.
+///
+/// To start and stop the writer thread, you can use the `oak::init_writer()` and
+/// `oak::stop_writer()` functions.
+///
+/// ```cpp
+/// #include <oak.hpp>
+///
+/// int main() {
+///    oak::init_writer();
+///    // log stuff
+///    oak::stop_writer();
+/// }
+/// ```
+///
+/// \section log Log your first message
+/// To log a message, you can use the `oak::log()` function. This function takes a
+/// log level, a format message and any number of arguments to format the message.
+/// 
+/// ```cpp
+/// oak::log(oak::level::info, "Hello, {}!", name);
+/// ```
+///
+/// The messages are formatted using `std::format`, so you can use the same syntax:
+/// every "{}" in the message will be replaced by the next argument.
+///
+/// The log levels are the following:
+/// - `oak::level::debug`
+/// - `oak::level::info`
+/// - `oak::level::warn`
+/// - `oak::level::error`
+/// - `oak::level::output`
+/// - `oak::level::disabled`
+/// 
+/// You can also use the following shorter functions to log messages:
+/// - `oak::debug()`
+/// - `oak::info()`
+/// - `oak::warn()`
+/// - `oak::error()`
+/// - `oak::output()`
+///
+/// ```cpp
+/// oak::info("Hello, {}!", name);
+/// // is equivalent to
+/// oak::log(oak::level::info, "Hello, {}!", name);
+/// ```
+///
+/// Or use macros:
+/// - `OAK_DEBUG()`
+/// - `OAK_INFO()`
+/// - `OAK_WARN()`
+/// - `OAK_ERROR()`
+/// - `OAK_OUTPUT()`
+/// 
+/// ```cpp
+/// OAK_DEBUG("Hello, {}!", name);
+/// ```
+///
+/// \subsection level Setting the global log level
+///
+/// You can set the global log level with the `oak::set_level()` function.
+/// **Only messages with a level equal or higher than the global log level will be logged**.
+///
+/// ```cpp
+/// oak::set_level(oak::level::info);
+/// ```
+/// The default log level is `oak::level::debug`.
+///
+///
+/// \section destinations Logging to different outputs
+/// The library supports logging to multiple outputs, in particular:
+/// - **File**: Logs to a file.
+/// - **Socket**: Logs to a socket.
+///   - **TCP**: Logs to a TCP socket.
+///   - **UDP**: Logs to a UDP socket.
+///   - **UNIX**: Logs to a UNIX socket.
+/// 
+/// \subsection file Logging to a file
+/// To log to a file, you can use `oak::set_file()`. This function takes the path to the file
+/// and the log level to log to the file, It will return a `std::expected<int, std::string>`
+/// with either the file descriptor or an error message.
+/// ```cpp
+/// auto file = oak::set_file("log.txt");
+/// if (!file.has_value()) {
+///    oak::error("Failed to open file: {}", file.error());
+/// }
+/// ```
+///
+/// All the next logs will be sent also to the file.
+///
+/// \subsection socket Logging to a socket
+/// To log to a socket, you can use `oak::set_socket()`. This function takes either a
+/// unix socket path for unix sockets or host, port and protocol for network sockets.
+/// For example:
+/// ```cpp
+/// // unix sockets
+/// oak::set_socket("/tmp/a-socket");
+/// // net socket, defaults to tcp
+/// oak::set_socket("127.0.0.1", 1234);
+/// // udp net socket
+/// oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
+/// ```
+///
+/// Similarly to the file, all the next logs will be sent to the socket.
+///
+/// \section custom Customizing the logger
+///
+/// The library offers a range of customization options to tailor the logging
+/// experience to your specific requirements. More customization ideas are
+/// always welcome, so feel free to open an issue or a pull request.
+///
+/// \subsection format Customizing the log format
+///
+/// You can add automatic metadata to the log messages by enabling any number of
+/// flags with `oak::set_flags()`. The flags are the following:
+/// - `oak::flags::level`: Adds the log level to the log message.
+/// - `oak::flags::date`: Adds the current date to the log message.
+/// - `oak::flags::time`: Adds the current time to the log message.
+/// - `oak::flags::pid`: Adds the process id to the log message.
+/// - `oak::flags::tid`: Adds the thread id to the log message.
+/// - `oak::flags::json`: Serializes the log message to json.
+///
+/// Example:
+/// ```cpp
+/// oak::set_flags(oak::flag::level | oak::flag::date | oak::flag::time);
+/// oak::info("Hello, {}!", name);
+/// ```
+/// ```
+/// [ level=info date=2022-01-01 time=12:00:00 ] Hello, name!
+/// ```
+/// 
+/// You can serialize the logs to json by enabling the `oak::flags::json` flag.
+/// ```cpp
+/// oak::set_flags(oak::flag::json);
+/// oak::info("Hello, {}!", name);
+/// ```
+/// ```
+/// { "level": "info", "date": "2022-01-01", "time": "12:00:00", "message": "Hello, Mario!"}
+/// ```
+///
+/// \section settings Settings file
+///
+/// You can also set the settings from a file, this is useful if
+/// you want to change the settings without recompiling the program.
+/// The setting file contains lines with the format
+/// `key=value1,value2...`.
+/// The allowed keys are:
+/// - `level`: The global log level.
+/// - `flags`: The flags to enable, separated by commas.
+/// - `file`: The file to log to.
+/// All spaces are ignored.
+///
+/// Example:
+/// ```
+/// level = debug
+/// flags = level, date, time, pid, tid
+/// file = tests/log_test.txt
+/// ```
+///
