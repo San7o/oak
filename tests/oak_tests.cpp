@@ -177,7 +177,7 @@ void test_unix_socket()
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
     ASSERT_EQ(n, 28);
-    ASSERT_EQ(std::string(buf, n), "[ level=info ] hello socket\n");
+    ASSERT_EQ(std::string(buf, (unsigned long) n), "[ level=info ] hello socket\n");
 
     t.join();
     oak::close_socket();
@@ -211,7 +211,7 @@ void test_net_socket()
     ssize_t n = read(accepted_sock, buf, 1024);
     ASSERT(n > 0);
     ASSERT_EQ(n, 28);
-    ASSERT_EQ(std::string(buf, n), "[ level=info ] hello socket\n");
+    ASSERT_EQ(std::string(buf, (unsigned long) n), "[ level=info ] hello socket\n");
 
     t.join();
     oak::close_socket();

@@ -120,25 +120,26 @@ struct logger
     static level log_level;
     static std::ofstream log_file;
     static std::deque<queue_element> log_queue;
-#ifdef OAK_USE_SOCKETS
-    static int log_socket;
-#endif
-    /* Mutexes */
     static std::mutex log_mutex;
     static std::condition_variable log_cv;
     static std::atomic<bool> close_writer;
     static std::optional<std::jthread> writer_thread;
+#ifdef OAK_USE_SOCKETS
+    static int log_socket;
+#endif
 };
 
 long unsigned int logger::flag_bits = 1;
 oak::level logger::log_level = oak::level::warn;
 std::ofstream logger::log_file;
 std::deque<queue_element> logger::log_queue;
-int logger::log_socket = -1;
 std::mutex logger::log_mutex;
 std::condition_variable logger::log_cv;
 std::atomic<bool> logger::close_writer = false;
 std::optional<std::jthread> logger::writer_thread;
+#ifdef OAK_USE_SOCKETS
+int logger::log_socket = -1;
+#endif
 
 inline level get_level()
 {
@@ -212,7 +213,7 @@ void add_to_queue(const std::string &str, const destination &d)
     logger::log_cv.notify_one();
 }
 
-template <typename... Args> void add_flags(flags flg, Args&&... args)
+template <typename... Args> void add_flags(flags flg, Args &&...args)
 {
     {
         std::lock_guard<std::mutex> lock(logger::log_mutex);
@@ -225,8 +226,7 @@ template <typename... Args> void add_flags(flags flg, Args&&... args)
 }
 
 // Base case
-template <typename... Args>
-void add_flags(flags flg)
+template <typename... Args> void add_flags(flags flg)
 {
     {
         std::lock_guard<std::mutex> lock(logger::log_mutex);
@@ -234,7 +234,7 @@ void add_flags(flags flg)
     }
 }
 
-template <typename... Args> void set_flags(flags flg, Args&& ... args)
+template <typename... Args> void set_flags(flags flg, Args &&...args)
 {
     {
         std::lock_guard<std::mutex> lock(logger::log_mutex);
@@ -288,8 +288,8 @@ void stop_writer()
     logger::writer_thread->join();
 }
 
-[[nodiscard]] std::expected<int, std::string> constexpr
-settings_file(const std::string &file)
+[[nodiscard]] std::expected<int, std::string> constexpr settings_file(
+    const std::string &file)
 {
     if (file.size() == 0)
         return std::unexpected("Settings file path is empty");
@@ -389,8 +389,8 @@ settings_file(const std::string &file)
 }
 
 template <typename... Args>
-std::string log_to_string(const level &lvl, const std::string &fmt,
-                          Args &&...args)
+std::string constexpr log_to_string(const level &lvl, const std::string &fmt,
+                                    Args &&...args)
 {
     auto flags = get_flags();
     bool json = false;
@@ -408,9 +408,10 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
     if (flags & static_cast<long unsigned int>(flags::level))
     {
         if (json)
-            prefix += std::format("\"level\": \"{}\"", lvl);
+            prefix +=
+                std::vformat("\"level\": \"{}\"", std::make_format_args(lvl));
         else
-            prefix += std::format("level={} ", lvl);
+            prefix += std::vformat("level={} ", std::make_format_args(lvl));
     }
     if (flags & static_cast<long unsigned int>(flags::date))
     {
@@ -440,19 +441,21 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
     }
     if (flags & static_cast<long unsigned int>(flags::pid))
     {
+        std::string pid = std::to_string(getpid());
         if (json)
-            prefix += ", \"pid\": " + std::to_string(getpid());
+            prefix += ", \"pid\": " + pid;
         else
-            prefix += std::format("pid={} ", getpid());
+            prefix += std::vformat("pid={} ", std::make_format_args(pid));
     }
     if (flags & static_cast<long unsigned int>(flags::tid))
     {
+        std::ostringstream oss;
+        oss << std::this_thread::get_id();
+        std::string tid = oss.str();
         if (json)
-            prefix += ", \"tid\": "
-                      + std::to_string(std::hash<std::thread::id>{}(
-                          std::this_thread::get_id()));
+            prefix += ", \"tid\": " + tid;
         else
-            prefix += std::format("tid={} ", std::this_thread::get_id());
+            prefix += std::vformat("tid={} ", std::make_format_args(tid));
     }
 
     if (flags - static_cast<long unsigned int>(flags::json) > 0 && !json)
@@ -462,9 +465,10 @@ std::string log_to_string(const level &lvl, const std::string &fmt,
     std::string formatted_string =
         std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
     if (json)
-        return std::format("{}\"message\": \"{}\" }}\n", prefix,
-                           formatted_string);
-    return std::format("{}{}\n", prefix, formatted_string);
+        return std::vformat("{}\"message\": \"{}\" }}\n",
+                            std::make_format_args(prefix, formatted_string));
+    return std::vformat("{}{}\n",
+                        std::make_format_args(prefix, formatted_string));
 }
 
 template <typename... Args>

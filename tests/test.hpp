@@ -13,7 +13,8 @@
     num_assertions++;                                                          \
     if ((x) != (y))                                                            \
     {                                                                          \
-        std::print("Line {} in file {}: Assertion failed: {} != {}\n",         \
-                   __LINE__, __FILE__, x, y);                                  \
+        std::cout << "Line " << __LINE__ << " in file " << __FILE__            \
+                  << ": Assertion failed: " << std::format("{}", x)            \
+                  << " != " << std::format("{}", y) << "\n";                   \
         errors++;                                                              \
     }
