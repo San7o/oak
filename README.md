@@ -3,7 +3,7 @@
 Oak is a lightweight and robust logging library for C++23, designed to
 simplify logging in modern C++ applications. As a single-header library,
 it requires no additional dependencies—simply include it in your project
-and start logging immediately.
+and start logging immediately. Works on both clang and gcc.
 
 Built with modern C++ practices, Oak leverages advanced language
 features to offer high performance and flexibility. Key features include:
@@ -18,7 +18,7 @@ features to offer high performance and flexibility. Key features include:
                  tailor the logging experience to your specific requirements.
 
 This code was originally forked from the logger of [Brenta Engine](https://github.com/San7o/Brenta-Engine)
-in order to develop it indipendently from the engine.
+in order to develop it independently from the engine.
 
 ## Features
 
@@ -94,7 +94,7 @@ You can also serialize the log adding the flag `oak::flags::json`:
 ```c++
 auto file = oak::set_file("/tmp/my-log");
 if (!file.has_value())
-    oak::error("Error opening setting file: {}", file.error());
+    oak::error("Error setting file: {}", file.error());
 ```
 The library uses `std::expected` to handle errors.
 
