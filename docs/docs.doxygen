@@ -11,9 +11,7 @@
 /// \section Overview
 ///
 /// Oak is a lightweight and robust logging library for C++23, designed to
-/// simplify logging in modern C++ applications. As a single-header library,
-/// it requires no additional dependencies—simply include it in your project
-/// and start logging immediately. Works on both clang anc gcc.
+/// simplify logging in modern C++ applications.
 /// 
 /// Built with modern C++ practices, Oak leverages advanced language
 /// features to offer high performance and flexibility. Key features include:
@@ -32,11 +30,12 @@
 ///
 /// \section start Just start logging
 ///
-/// To start logging with Oak, simply include the `oak.hpp` header file in your project.
+/// To start logging with Oak, simply include the `oak.hpp` header file in your project and `oak.cpp` in your source files.
+///
 /// That's about it for basic usage.
 ///
 /// ```cpp
-/// #include <oak.hpp>
+/// #include <oak/oak.hpp>
 /// ```
 ///
 /// The library uses the `oak` namespace, so you can
@@ -68,7 +67,7 @@
 /// `oak::stop_writer()` functions.
 ///
 /// ```cpp
-/// #include <oak.hpp>
+/// #include <oak/oak.hpp>
 ///
 /// int main() {
 ///    oak::init_writer();

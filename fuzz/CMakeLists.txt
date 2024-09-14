@@ -17,7 +17,7 @@ set(CMAKE_CXX_COMPILER clang++)
 
 option(OAK_USE_SOCKETS "Enable logging on sockets" ON)
 
-add_executable(fuzz oak_fuzz.cpp)
+add_executable(fuzz oak_fuzz.cpp ../src/oak.cpp)
 target_include_directories(fuzz PRIVATE ../include)
 target_link_libraries(fuzz PRIVATE -g -fsanitize-coverage=inline-8bit-counters
         -fsanitize-coverage=trace-cmp pthread -fsanitize=address)

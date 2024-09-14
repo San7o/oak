@@ -20,7 +20,7 @@ if(OAK_USE_CLANG)
     set(CMAKE_CXX_COMPILER clang++)
 endif()
 
-add_executable(oak src/main.cpp)
+add_executable(oak src/main.cpp src/oak.cpp)
 target_include_directories(oak PRIVATE include)
 target_compile_options(oak PRIVATE -Wall -Wextra -Wpedantic
         -Werror -Wconversion -Wshadow)
@@ -33,7 +33,7 @@ if (OAK_USE_CLANG)
 endif()
 
 if(OAK_BUILD_TESTS)
-    add_executable(tests tests/oak_tests.cpp)
+    add_executable(tests tests/oak_tests.cpp src/oak.cpp)
     target_include_directories(tests PRIVATE include tests)
     target_compile_options(tests PRIVATE -Wall -Wextra -Wpedantic
             -Werror -Wconversion -Wshadow)

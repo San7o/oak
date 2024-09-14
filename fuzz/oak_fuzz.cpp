@@ -1,5 +1,5 @@
 #include "fuzztest/fuzztest.h"
-#include "oak.hpp"
+#include "oak/oak.hpp"
 #include <stdio.h>
 
 void test_log_to_string(const std::string &fmt,
