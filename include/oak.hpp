@@ -39,7 +39,6 @@
 #include <iomanip>
 #include <iostream>
 #include <ostream>
-#include <print>
 #include <string>
 #include <thread>
 #include <unistd.h>
@@ -462,13 +461,17 @@ std::string constexpr log_to_string(const level &lvl, const std::string &fmt,
         prefix += "] ";
     if (flags - static_cast<long unsigned int>(flags::json) > 0 && json)
         prefix += ", ";
-    std::string formatted_string =
-        std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
-    if (json)
-        return std::vformat("{}\"message\": \"{}\" }}\n",
+    try {
+        std::string formatted_string =
+            std::vformat(fmt, std::make_format_args(std::forward<Args>(args)...));
+        if (json)
+            return std::vformat("{}\"message\": \"{}\" }}\n",
+                                std::make_format_args(prefix, formatted_string));
+        return std::vformat("{}{}\n",
                             std::make_format_args(prefix, formatted_string));
-    return std::vformat("{}{}\n",
-                        std::make_format_args(prefix, formatted_string));
+    } catch (const std::exception &e) {
+        return "";
+    }
 }
 
 template <typename... Args>

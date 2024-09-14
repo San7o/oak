@@ -44,7 +44,7 @@ in order to develop it independently from the engine.
 
 # Quick Tour
 
-To learn about all the functionalities, please visit the [html documentation](https://san7o.github.io/brenta-engine-documentation/oak/v1.0/). Here a quick guide will be made to
+To learn about all the functionalities, please visit the [html documentation](https://san7o.github.io/brenta-engine-documentation/oak/v1.0/). Here is presented a quick guide to
 showcase the library's api.
 
 ### The writer
@@ -140,6 +140,23 @@ cmake -Bbuild
 cmake --build build -j 4
 ./build/tests
 ```
+
+## Fuzzing
+
+The library supports [fuzztest](https://github.com/google/fuzztest/tree/main) for fuzzing. You
+need a recent version of clang to run the fuzzing, then you can compile the project in `fuzz/`
+with cmake using the following commands:
+```bash
+CXX=clang++ cmake -Bbuild -S fuzz -DFUZZTEST_FUZZING_MODE=on
+CXX=clang++ cmake --build build
+./build/fuzz -fuzz=fuzz_log_to_string.test_log_to_string
+``
+
+Or simply run
+```bash
+make fuzz
+```
+To run the same commands. Note that it might take some time to build fuzztest the first time.
 
 ## Documentation
 
