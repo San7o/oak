@@ -41,10 +41,15 @@ in order to develop it independently from the engine.
 - **async logging**
 
 # Usage
-Copy [include/oak/oak.hpp](./include/oak/oak.hpp) and [src/oak.cpp](./src/oak.cpp)
+To include oak in your project, simply [include/oak/oak.hpp](./include/oak/oak.hpp) and [src/oak.cpp](./src/oak.cpp)
 in your import directory and source directory respectively. That's it!
 
-# Quick Tour
+To build oak as a library, you can use the compile options `OAK_BUILD_SHARED` and `OAK_BUID_STATIC`:
+```bash
+cmake -Bbuild -DOAK_BUILD_STATIC=ON
+```
+
+## Quick Tour
 
 To learn about all the functionalities, please visit the [html documentation](https://san7o.github.io/brenta-engine-documentation/oak/v1.0/). Here is presented a quick guide to
 showcase the library's api.
