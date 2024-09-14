@@ -32,14 +32,14 @@
             gdb                     # debugger
             doxygen                 # documentation
             libz.dev                # compression
-            llvmPackages.libcxxClang # clang
+            llvmPackages.libcxxClang
           ];
           shellHook = ''
               zsh
           '';
 
           LD_LIBRARY_PATH="${pkgsFor.${system}.libz.dev}";
-          CXX="${pkgsFor.${system}.gcc14}/bin/g++";
+          CMAKE_CXX_COMPILER="${pkgsFor.${system}.gcc14}/bin/:${pkgsFor.${system}.clang_18}/bin/";
         };
     });
   };

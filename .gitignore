@@ -1,3 +1,5 @@
 build/
 generated_docs/
+dist/
+fuzz/dist/
 log_test.txt
