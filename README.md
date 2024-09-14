@@ -41,8 +41,8 @@ in order to develop it independently from the engine.
 - **async logging**
 
 # Usage
-Copy [oak/oak.hpp](./includes/oak/oak.hpp) and [src/oak.cpp](./src/oak.cpp)
-in respectively your import directory and source directory.
+Copy [include/oak/oak.hpp](./include/oak/oak.hpp) and [src/oak.cpp](./src/oak.cpp)
+in your import directory and source directory respectively. That's it!
 
 # Quick Tour
 
