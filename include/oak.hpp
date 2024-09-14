@@ -265,8 +265,10 @@ void writer()
                 logger::log_file << elem.message;
                 break;
             case oak::destination::socket:
+#ifdef OAK_USE_SOCKETS
                 write(logger::log_socket, elem.message.c_str(),
                       elem.message.size());
+#endif
                 break;
             default:
                 break;
