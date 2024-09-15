@@ -1,2 +1,3 @@
 level = debug
 flags = level, date, time, tid, pid
+file = build/some_log.txt

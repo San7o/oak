@@ -47,10 +47,6 @@ int oak::logger::log_socket = -1;
     {
         logger::log_file.close();
     }
-    if (!std::filesystem::exists(file))
-    {
-        return std::unexpected("File does not exist");
-    }
     logger::log_file.open(file, std::ios::app);
     if (!logger::log_file.is_open())
     {
@@ -132,7 +128,8 @@ void oak::stop_writer()
 {
     logger::close_writer = true;
     logger::log_cv.notify_one();
-    logger::writer_thread->join();
+    if (logger::writer_thread.has_value())
+        logger::writer_thread.value().join();
 }
 
 [[nodiscard]] std::expected<int, std::string> oak::settings_file(
