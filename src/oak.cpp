@@ -335,3 +335,22 @@ void oak::flush()
     if (logger::log_file.is_open())
         logger::log_file << std::flush;
 }
+
+std::string oak::apply_color(const level &lvl, const std::string &str)
+{
+    switch (lvl)
+    {
+        case level::debug:
+            return FCYN_S(str);
+        case level::info:
+            return FBLU_S(str);
+        case level::warn:
+            return FYEL_S(str);
+        case level::error:
+            return FRED_S(str);
+        case level::output:
+            return FGRN_S(str);
+        default:
+            return str;
+    }
+}

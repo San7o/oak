@@ -111,7 +111,7 @@ void test_log()
 
 void test_macros()
 {
-    oak::set_flags(oak::flags::level);
+    oak::set_flags(oak::flags::level, oak::flags::color);
     OAK_DEBUG("debug {}", "macro");
     OAK_INFO("info {}", "macro");
     OAK_WARN("warn {}", "macro");
