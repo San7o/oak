@@ -57,11 +57,44 @@
 #endif
 #endif
 
+/* FOREGROUND */
+#define RST  "\x1B[0m"
+#define KRED  "\x1B[31m"
+#define KGRN  "\x1B[32m"
+#define KYEL  "\x1B[33m"
+#define KBLU  "\x1B[34m"
+#define KMAG  "\x1B[35m"
+#define KCYN  "\x1B[36m"
+#define KWHT  "\x1B[37m"
+
+// for string literals
+#define FRED(x) KRED x RST
+#define FGRN(x) KGRN x RST
+#define FYEL(x) KYEL x RST
+#define FBLU(x) KBLU x RST
+#define FMAG(x) KMAG x RST
+#define FCYN(x) KCYN x RST
+#define FWHT(x) KWHT x RST
+
+#define FRED_S(x) std::string(KRED) + x + std::string(RST)
+#define FGRN_S(x) std::string(KGRN) + x + std::string(RST)
+#define FYEL_S(x) std::string(KYEL) + x + std::string(RST)
+#define FBLU_S(x) std::string(KBLU) + x + std::string(RST)
+#define FMAG_S(x) std::string(KMAG) + x + std::string(RST)
+#define FCYN_S(x) std::string(KCYN) + x + std::string(RST)
+#define FWHT_S(x) std::string(KWHT) + x + std::string(RST)
+
+#define BOLD(x) "\x1B[1m" x RST
+#define UNDL(x) "\x1B[4m" x RST
+#define BOLD_S(x) std::string("\x1B[1m") + x + std::string(RST)
+#define UNDL_S(x) std::string("\x1B[4m") + x + std::string(RST)
+
 #define OAK_DEBUG(...) oak::log(oak::level::debug, __VA_ARGS__)
 #define OAK_INFO(...) oak::log(oak::level::info, __VA_ARGS__)
 #define OAK_WARN(...) oak::log(oak::level::warn, __VA_ARGS__)
 #define OAK_ERROR(...) oak::log(oak::level::error, __VA_ARGS__)
 #define OAK_OUTPUT(...) oak::log(oak::level::output, __VA_ARGS__)
+
 
 namespace oak
 {
@@ -92,7 +125,8 @@ enum class flags
     time = 4,
     pid = 8,
     tid = 16,
-    json = 32
+    json = 32,
+    color = 64
 };
 
 enum class destination
@@ -324,13 +358,18 @@ void log_to_socket(const level &lvl, const std::string &fmt, Args &&...args)
 void log_to_socket(const std::string &str);
 #endif
 
+std::string apply_color(const level &lvl, const std::string &str);
+
 template <typename... Args>
 void log(const level &lvl, const std::string &fmt, Args &&...args)
 {
     if (get_level() > lvl)
         return;
     std::string formatted_string = log_to_string(lvl, fmt, args...);
-    log_to_stdout(formatted_string);
+    if (get_flags() & static_cast<long unsigned int>(flags::color))
+        log_to_stdout(apply_color(lvl, formatted_string));
+    else
+        log_to_stdout(formatted_string);
     if (is_file_open())
         log_to_file(formatted_string);
 #ifdef OAK_USE_SOCKETS
