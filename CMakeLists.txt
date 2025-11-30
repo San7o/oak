@@ -1,11 +1,12 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16)
 project(
     oak
     VERSION 1.0
     LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 23 REQUIRED)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_THREAD_LIBS_INIT "-lpthread")
 set(CMAKE_HAVE_THREADS_LIBRARY 1)
 set(CMAKE_USE_WIN32_THREADS_INIT 0)
@@ -16,8 +17,7 @@ set(OAK_SOURCES src/oak.cpp)
 set(OAK_HEADERS include)
 set(OAK_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow)
 
-option(OAK_BUILD_SHARED "Build shared library" ON)
-option(OAK_BUILD_STATIC "Build static library" OFF)
+option(BUILD_SHARED_LIBS "Build shared library" ON)
 option(OAK_BUILD_EXAMPLES "Build the examples" ON)
 option(OAK_BUILD_TESTS "Build the tests" ON)
 option(OAK_USE_SOCKETS "Enable logging on sockets" ON)
@@ -27,17 +27,16 @@ if(OAK_USE_CLANG)
     set(CMAKE_CXX_COMPILER clang++)
 endif()
 
-if(OAK_BUILD_SHARED)
-    add_library(oak SHARED ${OAK_SOURCES})
-    target_include_directories(oak PRIVATE ${OAK_HEADERS})
-    target_compile_options(oak PRIVATE ${OAK_COMPILE_OPTIONS})
+if(BUILD_SHARED_LIBS)
+  add_library(${PROJECT_NAME} SHARED ${OAK_SOURCES})
+else()
+  add_library(${PROJECT_NAME} STATIC ${OAK_SOURCES})
 endif()
-
-if(OAK_BUILD_STATIC)
-    add_library(oak_static STATIC ${OAK_SOURCES})
-    target_include_directories(oak_static PRIVATE ${OAK_HEADERS})
-    target_compile_options(oak_static PRIVATE ${OAK_COMPILE_OPTIONS})
-endif()
+  
+target_include_directories(${PROJECT_NAME} PRIVATE ${OAK_HEADERS})
+target_compile_options(${PROJECT_NAME} PRIVATE ${OAK_COMPILE_OPTIONS})
+set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME
+  ${PROJECT_NAME})
 
 if (OAK_BUILD_EXAMPLES)
 
