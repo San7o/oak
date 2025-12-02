@@ -61,8 +61,8 @@ CPMAddPackage(
 ## Quick Tour
 
 To learn about all the functionalities, please visit the [html
-documentation](https://san7o.github.io/brenta-engine-documentation/oak/v1.0/). Here
-is presented a quick guide to showcase the library's api.
+documentation](https://san7o.github.io/oak/). Here is presented a
+quick guide to showcase the library's api.
 
 ### The writer
 
