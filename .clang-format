@@ -18,11 +18,11 @@ BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: 'true'
 BreakStringLiterals: 'true'
 ColumnLimit: '80'
-ContinuationIndentWidth: '4'
+ContinuationIndentWidth: '2'
 DerivePointerAlignment: 'false'
 IncludeBlocks: Regroup
 IndentCaseLabels: 'false'
-IndentWidth: '4'
+IndentWidth: '2'
 IndentWrappedFunctionNames: 'false'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp

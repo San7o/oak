@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(
-    oak
-    VERSION 1.0
-    LANGUAGES CXX
-)
+project(oak
+  VERSION 1.1.0
+  DESCRIPTION "oak - a modern logger"
+  LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,55 +12,93 @@ set(CMAKE_USE_WIN32_THREADS_INIT 0)
 set(CMAKE_USE_PTHREADS_INIT 1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-set(OAK_SOURCES src/oak.cpp)
-set(OAK_HEADERS include)
-set(OAK_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -Werror -Wconversion -Wshadow)
+find_program(CCACHE_PROGRAM ccache) # use ccache if available
+if(CCACHE_PROGRAM)
+  message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
+  set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+endif()
+
+if(MSVC)
+  set(BRENTA_WARNING_FLAGS /W4 /permissive-)
+  set(BRENTA_DEBUG_FLAGS /Zi /Od)
+  set(BRENTA_RELEASE_FLAGS /O2)
+  set(BRENTA_DEBUG_DEFINES _DEBUG)
+elseif(MINGW)
+  set(BRENTA_WARNING_FLAGS -Wall -Wextra -Wpedantic)
+  set(BRENTA_DEBUG_FLAGS -O0 -ggdb)
+  set(BRENTA_RELEASE_FLAGS -O3)
+  set(BRENTA_DEBUG_DEFINES DEBUG)
+else()
+  set(BRENTA_WARNING_FLAGS -Wall -Wextra -Werror -Wpedantic)
+  set(BRENTA_DEBUG_FLAGS -O0 -ggdb -fsanitize=address)
+  set(BRENTA_RELEASE_FLAGS -O3)
+  set(BRENTA_DEBUG_DEFINES DEBUG)
+  set(BRENTA_DEBUG_LINK_FLAGS -fsanitize=address)
+endif()
+
+#
+# Options
+#
 
 option(BUILD_SHARED_LIBS "Build shared library" ON)
-option(OAK_BUILD_EXAMPLES "Build the examples" ON)
-option(OAK_BUILD_TESTS "Build the tests" ON)
+option(OAK_BUILD_EXAMPLE "Build the example program" OFF)
+option(OAK_BUILD_TESTS "Build the tests" OFF)
 option(OAK_USE_SOCKETS "Enable logging on sockets" ON)
-option(OAK_USE_CLANG "Use clang" OFF)
 
-if(OAK_USE_CLANG)
-    set(CMAKE_CXX_COMPILER clang++)
+if (OAK_USE_SOCKETS)
+  list(APPEND OAK_COMPILE_DEFINITIONS
+    OAK_USE_SOCKETS)
 endif()
+
+#
+# Sources and headers
+#
+
+set(OAK_SOURCES src/oak.cpp)
+set(OAK_HEADERS include)
+
+#
+# Targets
+#
 
 if(BUILD_SHARED_LIBS)
-  add_library(${PROJECT_NAME} SHARED ${OAK_SOURCES})
+  add_library(${PROJECT_NAME} SHARED
+    ${OAK_SOURCES})
 else()
-  add_library(${PROJECT_NAME} STATIC ${OAK_SOURCES})
+  add_library(${PROJECT_NAME} STATIC
+    ${OAK_SOURCES})
 endif()
-  
-target_include_directories(${PROJECT_NAME} PRIVATE ${OAK_HEADERS})
-target_compile_options(${PROJECT_NAME} PRIVATE ${OAK_COMPILE_OPTIONS})
-set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME
-  ${PROJECT_NAME})
 
-if (OAK_BUILD_EXAMPLES)
+target_include_directories(${PROJECT_NAME} PRIVATE
+  ${OAK_HEADERS})
+target_compile_options(${PROJECT_NAME} PRIVATE
+  ${OAK_COMPILE_OPTIONS})
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  ${OAK_COMPILE_DEFINITIONS})
 
-    add_executable(example src/main.cpp ${OAK_SOURCES})
-    target_include_directories(example PRIVATE ${OAK_HEADERS})
-    target_compile_options(example PRIVATE ${OAK_COMPILE_OPTIONS})
-
-    if (OAK_USE_SOCKETS)
-        target_compile_definitions(example PRIVATE OAK_USE_SOCKETS)
-    endif()
-    if (OAK_USE_CLANG)
-        target_compile_options(example PRIVATE -std=c++23 -fexperimental-library) # jthread, format
-        target_link_libraries(example PRIVATE -fexperimental-library)
-    endif()
+if (OAK_BUILD_EXAMPLE)
+  add_executable(${PROJECT_NAME}_example
+    tests/example.cpp)
+  target_include_directories(${PROJECT_NAME}_example PRIVATE
+    ${OAK_HEADERS})
+  target_compile_options(${PROJECT_NAME}_example PRIVATE
+    ${OAK_COMPILE_OPTIONS})
+  target_link_libraries(${PROJECT_NAME}_example PRIVATE
+    ${PROJECT_NAME})
+  target_compile_definitions(${PROJECT_NAME}_example PRIVATE
+    ${OAK_COMPILE_DEFINITIONS})
 endif()
 
 if(OAK_BUILD_TESTS)
-    add_executable(tests tests/oak_tests.cpp ${OAK_SOURCES})
-    target_include_directories(tests PRIVATE tests ${OAK_HEADERS})
-    target_compile_options(tests PRIVATE ${OAK_COMPILE_OPTIONS})
-    if (OAK_USE_SOCKETS)
-        target_compile_definitions(tests PRIVATE OAK_USE_SOCKETS)
-    endif()
-    if (OAK_USE_CLANG)
-        target_compile_options(tests PRIVATE -std=c++23 -fexperimental-library)
-        target_link_libraries(tests PRIVATE -fexperimental-library)
-    endif()
+  add_executable(${PROJECT_NAME}_tests
+    tests/oak_tests.cpp)
+  target_include_directories(${PROJECT_NAME}_tests PRIVATE
+    tests
+    ${OAK_HEADERS})
+  target_compile_options(${PROJECT_NAME}_tests PRIVATE
+    ${OAK_COMPILE_OPTIONS})
+  target_link_libraries(${PROJECT_NAME}_tests PRIVATE
+    ${PROJECT_NAME})
+  target_compile_definitions(${PROJECT_NAME}_tests PRIVATE
+    ${OAK_COMPILE_DEFINITIONS})
 endif()
