@@ -165,9 +165,9 @@ oak::async(oak::level:debug, "Time travelling");
 
 # Contributing
 
-Any new contributor is welcome to this project. Please
-read [CONTRIBUTING](./CONTRIBUTING.md) for intructions
-on how to contribute.
+Any new contributor is welcome to this project. Please read
+[CONTRIBUTING](./docs/CONTRIBUTING.md) for intructions on how to
+contribute.
 
 ## Testing
 
@@ -181,7 +181,9 @@ cmake --build build -j 4
 
 ## Documentation
 
-The project's documentation uses doxygen, to generate the html documentation locally, please run:
+The project's documentation uses doxygen, to generate the html
+documentation locally, please run:
+
 ```bash
 make docs
 ```
@@ -192,6 +194,7 @@ The library uses `clang-format` for formatting, the rules are saved in
 [.clang-format](./.clang-format).
 
 To format the code, run:
+
 ```bash
 make format
 ```
