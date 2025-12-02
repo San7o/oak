@@ -25,6 +25,6 @@ jobs:
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
 
     - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: ./oak_tests
+      working-directory: ${{github.workspace}}
+      run: ./build/oak_tests
 
