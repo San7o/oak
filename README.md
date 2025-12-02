@@ -36,8 +36,6 @@ independently from the engine.
 
 - **json serialization**
 
-- **thread safety**
-
 - **log buffering**
 
 - **async logging**
