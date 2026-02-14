@@ -15,18 +15,17 @@ void test_getters()
 {
   // default values
   auto level = oak::get_level();
-  ASSERT(level == oak::level::warn);
+  ASSERT(level == oak::Level::Default);
   auto flags = oak::get_flags();
-  ASSERT(flags == 1);
-  ASSERT(oak::is_file_open() == false);
+  ASSERT(flags == oak::Flags::Level);
 }
 
 void test_level()
 {
-  oak::set_level(oak::level::debug);
-  ASSERT_EQ(oak::get_level(), oak::level::debug);
-  oak::set_level(oak::level::info);
-  ASSERT_EQ(oak::get_level(), oak::level::info);
+  oak::set_level(oak::Level::Debug);
+  ASSERT_EQ(oak::get_level(), oak::Level::Debug);
+  oak::set_level(oak::Level::Info);
+  ASSERT_EQ(oak::get_level(), oak::Level::Info);
   oak::set_level(oak::level::warn);
   ASSERT_EQ(oak::get_level(), oak::level::warn);
   oak::set_level(oak::level::error);
