@@ -80,7 +80,7 @@ FileWriter::FileWriter(const std::filesystem::path &path)
   auto file = std::ofstream(path);
   if (!file.is_open())
   {
-    std::print("[ERROR] [oak] Error creating writer for file {}", path.c_str());
+    std::print("[ERROR] [oak] Error creating writer for file {}", path.string());
     return;
   }
 

@@ -12,6 +12,8 @@ set(CMAKE_USE_WIN32_THREADS_INIT 0)
 set(CMAKE_USE_PTHREADS_INIT 1)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
+set(OAK_LINK_LIBRARIES)
+
 find_program(CCACHE_PROGRAM ccache) # use ccache if available
 if(CCACHE_PROGRAM)
   message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
@@ -28,6 +30,7 @@ elseif(MINGW)
   set(OAK_DEBUG_FLAGS -O0 -ggdb)
   set(OAK_RELEASE_FLAGS -O3)
   set(OAK_DEBUG_DEFINES DEBUG)
+  list(APPEND OAK_LINK_LIBRARIES stdc++exp)
 else()
   set(OAK_WARNING_FLAGS -Wall -Wextra -Werror -Wpedantic)
   set(OAK_DEBUG_FLAGS -O0 -ggdb)
@@ -77,6 +80,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE
   ${OAK_COMPILE_OPTIONS})
 target_compile_definitions(${PROJECT_NAME} PRIVATE
   ${OAK_COMPILE_DEFINITIONS})
+target_link_libraries(${PROJECT_NAME} PRIVATE
+  ${OAK_LINK_LIBRARIES})
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   message(STATUS "Configuring Debug build options...")
