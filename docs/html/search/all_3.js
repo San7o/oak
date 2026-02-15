@@ -1,13 +1,11 @@
 var searchData=
 [
-  ['close_5ffile_0',['close_file',['../namespaceoak.html#a41c7279dc360dfc6a533105d21026efc',1,'oak']]],
-  ['close_5fwriter_1',['close_writer',['../structoak_1_1logger.html#af7e88bb4d76bf000c91c8a2062c7ec69',1,'oak::logger']]],
-  ['code_2',['Contributing Code',['../md_docs_2CONTRIBUTING.html#autotoc_md4',1,'']]],
-  ['color_3',['color',['../namespaceoak.html#a26bbe3500c6ef5e91075c754b418c999a70dda5dfb8053dc6d1c492574bce9bfd',1,'oak']]],
-  ['contribute_4',['How to Contribute',['../md_docs_2CONTRIBUTING.html#autotoc_md1',1,'']]],
-  ['contributing_20code_5',['Contributing Code',['../md_docs_2CONTRIBUTING.html#autotoc_md4',1,'']]],
-  ['contributing_20to_20the_20engine_6',['Contributing to the Engine',['../md_docs_2CONTRIBUTING.html',1,'']]],
-  ['contributing_2emd_7',['CONTRIBUTING.md',['../CONTRIBUTING_8md.html',1,'']]],
-  ['customizing_20the_20log_20format_8',['Customizing the log format',['../index.html#format',1,'']]],
-  ['customizing_20the_20logger_9',['Customizing the logger',['../index.html#custom',1,'']]]
+  ['date_0',['Date',['../namespaceoak.html#a4fa55ac018569abccc4340ab40bd5749a44749712dbec183e983dcd78a7736c41',1,'oak']]],
+  ['debug_1',['debug',['../classoak_1_1Logger.html#a17cb299769079195a940c104917a9609',1,'oak::Logger::debug()'],['../namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91aa603905470e2a5b8c13e96b579ef0dba',1,'oak::Debug']]],
+  ['debug2_2',['debug2',['../classoak_1_1Logger.html#a7487d3c9891ccdcf35451c2fb98a4f87',1,'oak::Logger']]],
+  ['default_3',['default',['../namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91a7a1920d61156abc05a60135aefe8bc67',1,'oak::Default'],['../namespaceoak.html#a4fa55ac018569abccc4340ab40bd5749a7a1920d61156abc05a60135aefe8bc67',1,'oak::Default']]],
+  ['different_20outputs_4',['Logging to different outputs',['../index.html#destinations',1,'']]],
+  ['disabled_5',['Disabled',['../namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91ab9f5c797ebbf55adccdd8539a65a0241',1,'oak']]],
+  ['docs_2edoxygen_6',['docs.doxygen',['../docs_8doxygen.html',1,'']]],
+  ['documentation_7',['Oak Documentation',['../index.html',1,'']]]
 ];

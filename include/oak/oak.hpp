@@ -22,6 +22,7 @@
 #include <print>
 #include <memory>
 #include <functional>
+#include <expected>
 
 namespace oak
 {
@@ -237,6 +238,9 @@ public:
   inline void add_flags(Flags flag)
   { this->flags = this->flags | (unsigned int) flag; };
 
+  std::expected<int, std::string>
+  load_config_file(const std::filesystem::path& file);
+
   // TODO
   template<typename... Args>
   void event(unsigned int id, const char *fmt, Args &&...args)
@@ -384,6 +388,9 @@ void set_flags(F&&...flags)
 template<typename ...F>
 void add_flags(F&&...flags)
 { oak::get_global().add_flags(flags...); }
+std::expected<int, std::string>
+load_config_file(const std::filesystem::path& file)
+{ return oak::get_global().load_config_file(file); }
   
 } // namespace oak
 

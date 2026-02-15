@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['_5fmax_5fdestination_0',['_max_destination',['../namespaceoak.html#a7b615c83decb75b49aebf1675c0fea40a38ae4e8fd72a842292b544e08864f5ed',1,'oak']]],
-  ['_5fmax_5flevel_1',['_max_level',['../namespaceoak.html#ae0e233add26270e8f3d67ab1f15e30edaeb4a6d1be5c70c73fe721c0ac808ed03',1,'oak']]],
-  ['_5fmax_5fprotocol_2',['_max_protocol',['../namespaceoak.html#a0f2c6c3049081d89ea342c333939ba9caf5e104b29afdff366bc44f80c8c110da',1,'oak']]]
+  ['a_20file_0',['Logging to a file',['../index.html#file',1,'']]],
+  ['a_20socket_1',['Logging to a socket',['../index.html#socket',1,'']]],
+  ['add_5fflags_2',['add_flags',['../classoak_1_1Logger.html#a69f7ac0d2afaa8bce8de798eafc95223',1,'oak::Logger::add_flags(Flags flag, F &amp;&amp;... flags)'],['../classoak_1_1Logger.html#a7bfee6e30c2f7a1e9871d52bb385d14b',1,'oak::Logger::add_flags(Flags flag)'],['../namespaceoak.html#a5e22c0b6aa5a51e857c01fb8fb21013a',1,'oak::add_flags()']]],
+  ['add_5fwriter_3',['add_writer',['../classoak_1_1Logger.html#adb2a97b5dc7fa9ae7359edb164075e9f',1,'oak::Logger::add_writer()'],['../namespaceoak.html#a32236d2a83aec72787a62f682a886ada',1,'oak::add_writer()']]],
+  ['asynchronous_20logging_4',['Asynchronous logging',['../index.html#async',1,'']]]
 ];

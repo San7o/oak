@@ -46,54 +46,53 @@ void test_flags()
   oak::set_flags(oak::Flags::Level);
 }
 
-/*
 void test_settings_file()
 {
-  auto ret = oak::settings_file("nope");
-  ASSERT(!ret.has_value());
+  {
+    oak::Logger logger = oak::Logger();
+    auto ret = logger.load_config_file("nope");
+    ASSERT(!ret.has_value());
+  }
 
-  ret = oak::settings_file("tests/test_settings1.oak");
-  ASSERT(ret.has_value());
+  {
+    oak::Logger logger = oak::Logger();
+    auto ret = logger.load_config_file("tests/test_settings1.oak");
+    ASSERT(ret.has_value());
 
-  ASSERT_EQ(oak::get_level(), oak::Level::Debug);
-  ASSERT_EQ(oak::get_flags(), 31);
+    ASSERT_EQ(logger.get_level(), oak::Level::Debug);
+    ASSERT_EQ(logger.get_flags(), 31);
 
-  ret = oak::settings_file("tests/test_settings2.oak");
-  ASSERT(ret.has_value());
-  ASSERT_EQ(oak::get_level(), oak::Level::Info);
-  ASSERT_EQ(oak::get_flags(), 2);
+    logger.info("Hello log_test!");
+  }
+
+  {
+    oak::Logger logger = oak::Logger();
+    auto ret = logger.load_config_file("tests/test_settings2.oak");
+    ASSERT(ret.has_value());
+    ASSERT_EQ(logger.get_level(), oak::Level::Info);
+    ASSERT_EQ(logger.get_flags(), 2);
+  }
 }
 
 void test_file()
 {
-  auto exp = oak::set_file("/home/root/prova");
-  ASSERT(!exp.has_value());
-
-  if (std::filesystem::exists("tests/test_out.txt"))
   {
-    std::filesystem::remove("tests/test_out.txt");
+    oak::Logger logger = oak::Logger();
+    logger.add_writer<oak::FileWriter>("tests/test_out.txt");
+    logger.log(oak::Level::Info, "hello file");
+
+    // give time to write
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(200ms);
+
+    ASSERT(std::filesystem::exists("tests/test_out.txt"));
   }
 
-  // Create the file
-  std::ofstream file("tests/test_out.txt");
-  file.close();
-
-  exp = oak::set_file("tests/test_out.txt");
-  ASSERT(exp.has_value());
-  oak::log_to_file(oak::Level::info, "hello file");
-
-  // give time to write
-  using namespace std::chrono_literals;
-  std::this_thread::sleep_for(200ms);
-
-  oak::close_file();
-  ASSERT(std::filesystem::exists("tests/test_out.txt"));
   ASSERT(std::filesystem::file_size("tests/test_out.txt") > 0);
 
   // clean up
   std::filesystem::remove("tests/test_out.txt");
 }
-*/
 
 void test_log()
 {
@@ -234,8 +233,8 @@ int main()
   test_getters();
   test_level();
   test_flags();
-  // test_settings_file();
-  // test_file();
+  test_settings_file();
+  test_file();
   test_log();
   test_macros();
   // test_async();

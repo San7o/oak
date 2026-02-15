@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['out_0',['out',['../namespaceoak.html#a20ed4ed26ca02ceeaee6093926e7e673',1,'oak']]],
-  ['output_1',['output',['../namespaceoak.html#aac48184147556a22e43dcd3ee58c8b9a',1,'oak']]]
+  ['remove_5fwriter_0',['remove_writer',['../classoak_1_1Logger.html#a6044a7a299801c80688bc4cd7a99ed4a',1,'oak::Logger::remove_writer()'],['../namespaceoak.html#af51bfe4870628dad9398f9a485cf59e8',1,'oak::remove_writer()']]]
 ];

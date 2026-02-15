@@ -4,7 +4,7 @@
   num_assertions++;                                                            \
   if (!(x))                                                                    \
   {                                                                            \
-    std::cerr << "Line " << __LINE__ << " in file " << __FILE__         \
+    std::cerr << __FILE__                                               \
               << ":" << __LINE__ << ": Assertion failed: " << #x << std::endl; \
     errors++;                                                                  \
   }

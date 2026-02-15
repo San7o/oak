@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['udp_0',['udp',['../namespaceoak.html#a0f2c6c3049081d89ea342c333939ba9ca84864c1fe095359bc9c5ac068e24e781',1,'oak']]],
-  ['undl_1',['UNDL',['../oak_8hpp.html#a83010912e47c70954b461dd1013b2d4e',1,'oak.hpp']]],
-  ['undl_5fs_2',['UNDL_S',['../oak_8hpp.html#a37fda7ea76ab0e828e2844477f90ccd6',1,'oak.hpp']]]
+  ['_7elogger_0',['~Logger',['../classoak_1_1Logger.html#a8e0dd403351c883de8f5e9f7e91b4473',1,'oak::Logger']]],
+  ['_7ewriter_1',['~Writer',['../classoak_1_1Writer.html#a6f57399b94731301d267ce10a2f52ea3',1,'oak::Writer']]]
 ];

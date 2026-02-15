@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['level_0',['level',['../namespaceoak.html#a26bbe3500c6ef5e91075c754b418c999ac9e9a848920877e76685b2e4e76de38d',1,'oak']]]
+  ['none_0',['None',['../namespaceoak.html#a4fa55ac018569abccc4340ab40bd5749a6adf97f83acf6453d4a6a4b1070f3754',1,'oak']]]
 ];

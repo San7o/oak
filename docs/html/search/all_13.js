@@ -1,15 +1,8 @@
 var searchData=
 [
-  ['set_5ffile_0',['set_file',['../namespaceoak.html#a81491b6554c027755e70a4f77df81ca4',1,'oak']]],
-  ['set_5fflags_1',['set_flags',['../namespaceoak.html#aa59cafe46cebd55aa8725e46c7eeb954',1,'oak']]],
-  ['set_5flevel_2',['set_level',['../namespaceoak.html#aadc8072dcb70b79342fe2a8e6d379ffe',1,'oak']]],
-  ['setting_20the_20global_20log_20level_3',['Setting the global log level',['../index.html#level',1,'']]],
-  ['settings_20file_4',['Settings file',['../index.html#settings',1,'']]],
-  ['settings_5ffile_5',['settings_file',['../namespaceoak.html#a83b563916c5b0164b9f7128d339bb327',1,'oak']]],
-  ['socket_6',['socket',['../index.html#socket',1,'Logging to a socket'],['../namespaceoak.html#a7b615c83decb75b49aebf1675c0fea40a61f2529360aec54f5dc9804b842cf3fa',1,'oak::socket']]],
-  ['start_20logging_7',['Just start logging',['../index.html#start',1,'']]],
-  ['starting_20the_20writer_8',['Starting the writer',['../index.html#writer',1,'']]],
-  ['std_5fout_9',['std_out',['../namespaceoak.html#a7b615c83decb75b49aebf1675c0fea40a6600feb0842101aea8fb99393097bf6a',1,'oak']]],
-  ['stop_5fwriter_10',['stop_writer',['../namespaceoak.html#a726c8bc118d3be48cef0f9bfe449e374',1,'oak']]],
-  ['suggesting_20features_11',['Suggesting Features',['../md_docs_2CONTRIBUTING.html#autotoc_md3',1,'']]]
+  ['warn_0',['warn',['../classoak_1_1Logger.html#a6509ff7a0a42e4c2b78c01419e1dedb1',1,'oak::Logger::warn()'],['../namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91a56525ae64d370c0b448ac0d60710ef17',1,'oak::Warn']]],
+  ['warn2_1',['warn2',['../classoak_1_1Logger.html#af479a7ed8c85e95c971e6aafd6e6dc07',1,'oak::Logger']]],
+  ['write_2',['write',['../classoak_1_1Writer.html#a9c8cc172377bbf93d085131fbe93bb6a',1,'oak::Writer::write()'],['../classoak_1_1FileWriter.html#afb6b56c1e59501a50bd12c4fbb278f4d',1,'oak::FileWriter::write()'],['../classoak_1_1StdoutWriter.html#a4c2d5bc66207d4709f24449fb8c381a3',1,'oak::StdoutWriter::write()']]],
+  ['write_5floop_3',['write_loop',['../classoak_1_1Writer.html#acf9718bc86875924261870d30e70763a',1,'oak::Writer']]],
+  ['writer_4',['writer',['../index.html#writer',1,'Starting the writer'],['../classoak_1_1Writer.html',1,'oak::Writer'],['../classoak_1_1Writer.html#a05bf10eb7cdbcef4793d08b77b1ee4fe',1,'oak::Writer::Writer()']]]
 ];

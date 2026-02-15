@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['queue_5felement_0',['queue_element',['../structoak_1_1queue__element.html',1,'oak']]]
+  ['logger_0',['Logger',['../classoak_1_1Logger.html',1,'oak']]]
 ];

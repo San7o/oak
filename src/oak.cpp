@@ -201,3 +201,94 @@ Logger& oak::get_global()
   static Logger instance;
   return instance;
 }
+
+std::expected<int, std::string>
+Logger::load_config_file(const std::filesystem::path& file)
+{
+  if (!std::filesystem::exists(file))
+  {
+    return std::unexpected("Settings file does not exist");
+  }
+
+  std::ifstream settings(file);
+  while (!settings.eof())
+  {
+    std::string line;
+    std::getline(settings, line);
+    if (line.size() == 0)
+      continue;
+
+    std::string key = line.substr(0, line.find('='));
+    std::string value = line.substr(line.find('=') + 1);
+
+    key.erase(std::remove_if(key.begin(), key.end(), isspace), key.end());
+    value.erase(std::remove_if(value.begin(), value.end(), isspace),
+                value.end());
+
+    if (key == "level")
+    {
+      if (value == "debug")
+        set_level(Level::Debug);
+      else if (value == "info")
+        set_level(Level::Info);
+      else if (value == "warn")
+        set_level(Level::Warn);
+      else if (value == "error")
+        set_level(Level::Error);
+      else
+        return std::unexpected("Invalid log level in file");
+    }
+    else if (key == "flags")
+    {
+      set_flags(Flags::None);
+      while (value.find(',') != std::string::npos)
+      {
+        std::string flag = value.substr(0, value.find(','));
+        value = value.substr(value.find(',') + 1);
+        if (flag == "none")
+          add_flags(Flags::None);
+        else if (flag == "level")
+          add_flags(Flags::Level);
+        else if (flag == "date")
+          add_flags(Flags::Date);
+        else if (flag == "time")
+          add_flags(Flags::Time);
+        else if (flag == "pid")
+          add_flags(Flags::Pid);
+        else if (flag == "tid")
+          add_flags(Flags::Tid);
+        else if (flag == "json")
+          add_flags(Flags::Json);
+        else
+          return std::unexpected("Invalid flags in file");
+      }
+      // get last element
+      if (value == "none")
+        add_flags(Flags::None);
+      else if (value == "level")
+        add_flags(Flags::Level);
+      else if (value == "date")
+        add_flags(Flags::Date);
+      else if (value == "time")
+        add_flags(Flags::Time);
+      else if (value == "pid")
+        add_flags(Flags::Pid);
+      else if (value == "tid")
+        add_flags(Flags::Tid);
+      else if (value == "json")
+        add_flags(Flags::Json);
+      else
+        return std::unexpected("Invalid flags in file");
+    }
+    else if (key == "file")
+    {
+      add_writer<FileWriter>(value);
+    }
+    else
+    {
+      return std::unexpected("Invalid key in file");
+    }
+  }
+
+  return 0;
+}

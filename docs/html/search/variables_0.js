@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['close_5fwriter_0',['close_writer',['../structoak_1_1logger.html#af7e88bb4d76bf000c91c8a2062c7ec69',1,'oak::logger']]]
+  ['id_0',['id',['../structoak_1_1Event.html#a271350b4ad2511a7a60519b9e80a2c89',1,'oak::Event']]]
 ];
