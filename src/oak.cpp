@@ -385,3 +385,73 @@ std::string Logger::json_formatter(enum Level level, int flags,
     return Logger::colorize(level, output);
   return output;
 }
+
+const Logger::Formatter Logger::default_formatter =
+  [](enum Level level, int flags,
+     const char* file,
+     int line,
+     const std::string& log)
+{
+  bool json = false;
+  bool do_color = false;
+  if (flags & (unsigned int) Flags::Json) json = true;
+  if (json)
+    return json_formatter(level, flags, file, line, log);
+
+  std::string output;
+
+  if (flags & (unsigned int) Flags::Color) do_color = true;
+
+  if (flags & (unsigned int) Flags::Level)
+  {
+    output += level_to_string(level) + " ";
+  }
+  if (flags & (unsigned int) Flags::Date)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_time_t);
+    std::ostringstream oss;
+    oss << std::put_time(&now_tm, "%Y-%m-%d") << " ";
+    output += oss.str();
+  }
+  if (flags & (unsigned int) Flags::Time)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_time_t);
+    std::ostringstream oss;
+    oss << std::put_time(&now_tm, "%H:%M:%S") << " ";
+    output += oss.str();
+  }
+  if (flags & (unsigned int) Flags::Pid)
+  {
+    std::string pid = std::to_string(getpid());
+    output += pid + " ";
+  }
+  if (flags & (unsigned int) Flags::Tid)
+  {
+    std::ostringstream oss;
+    oss << std::this_thread::get_id();
+    std::string tid = oss.str();
+    output += tid + " ";
+  }
+  if (flags & (unsigned int) Flags::File)
+  {
+    output += std::string(file) + " ";
+  }
+
+  if (flags & (unsigned int) Flags::Line)
+  {
+    output += std::to_string(line) + " ";
+  }
+
+  output += "| ";
+  output += log;
+    
+  output += '\n';
+    
+  if (do_color)
+    return colorize(level, output);
+  return output;
+};

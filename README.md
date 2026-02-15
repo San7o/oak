@@ -11,7 +11,7 @@ independently from the engine.
 
 - Thread safe
 - Non-blocking publisher-subscriber pattern: each [writer](#writers)
-  runs on its own thread and keeps a local queue of the logs that need
+  runs on its own thread and keeps a local queue of the logs that have
   to be written, so the log call does not need to wait for the output
   to be written
 - Customization: Oak is designed with a modular architecture

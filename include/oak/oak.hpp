@@ -3,6 +3,8 @@
 // Mail:    giovanni.santini@proton.me
 // Github:  @San7o
 
+#pragma once
+
 #include <unistd.h>
 #include <iostream>
 #include <vector>
@@ -220,7 +222,7 @@ private:
   std::unordered_map<unsigned int, std::string>  events;
 
   static const Formatter default_formatter;
-  Formatter           formatter = default_formatter;
+  Formatter              formatter = default_formatter;
   std::vector<std::shared_ptr<Writer>> writers;  
 };
 
