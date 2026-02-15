@@ -30,7 +30,7 @@ namespace oak
 // Macros
 //
 
-#define OAK_LOG(level, ...) oak::log(level, __FILE__, __LINE__, __VA_ARGS__)
+#define OAK_LOG(level, ...) oak::log2(level, __FILE__, __LINE__, __VA_ARGS__)
 #define OAK_DEBUG(...)      OAK_LOG(oak::Level::Debug, __VA_ARGS__)
 #define OAK_INFO(...)       OAK_LOG(oak::Level::Info, __VA_ARGS__)
 #define OAK_WARN(...)       OAK_LOG(oak::Level::Warn, __VA_ARGS__)
@@ -41,7 +41,6 @@ namespace oak
 #define OAK_INFO2(logger, ...)  OAK_LOG2(logger, oak::Level::Info, __VA_ARGS__)
 #define OAK_WARN2(logger, ...)  OAK_LOG2(logger, oak::Level::Warn, __VA_ARGS__)
 #define OAK_ERROR2(logger, ...) OAK_LOG2(logger, oak::Level::Error, __VA_ARGS__)
-
   
 enum class Level
 {
@@ -53,9 +52,9 @@ enum class Level
   Default   = Info,
 };
 
-const char* level_to_string(enum Level level);
+std::string level_to_string(enum Level level);
   
-enum Flags
+enum class Flags : unsigned int
 {
   None    = 0,
   Level   = 1,
@@ -69,7 +68,7 @@ enum Flags
   Line    = 1 << 8,
   Default = Level,
 };
-
+  
 struct Event
 {
   unsigned int id;
@@ -92,6 +91,8 @@ public:
   // Derived classes just have to implement this
   // No locking is required here
   virtual void write(const std::string& str) = 0;
+  // A name that identifies the writer
+  virtual std::string get_name() = 0;
     
   void submit(const std::string &log);
   void write_loop();
@@ -116,6 +117,7 @@ public:
   FileWriter(const std::filesystem::path &path);
 
   void write(const std::string& str) override;
+  std::string get_name() override;
 
 private:
 
@@ -130,6 +132,7 @@ public:
   StdoutWriter() = default;
   
   void write(const std::string& str) override;
+  std::string get_name() override;
     
 };
 
@@ -187,14 +190,52 @@ public:
   { log2(l, "unknown", 0, fmt, args...); }
   template<typename... Args>
   void log2(enum Level level, const char* file, int line,
-            const char *fmt, Args &&...args);
+            const char *fmt, Args &&...args)
+  {
+    if (level < this->level) return;
+    
+    std::string formatted = std::vformat(fmt, std::make_format_args(args...));
+
+    std::string output = this->formatter(level, flags, file, line, formatted);
+    
+    for (auto& writer : writers)
+    {
+      writer->write(output);
+    }
+  }
 
   // TODO: Add event
   // TODO: Remove event
-  // TODO: Add writer
-  // TODO: Set / get level
-  // TODO: Set / get flags
 
+  template<typename W, typename ...Args>
+  void add_writer(Args &&...init_args)
+  {
+    this->writers.push_back(std::make_shared<W>(init_args...));
+    OAK_INFO2(this, "[OAK] Added writer {}", writers.front()->get_name());
+  }
+
+  // Returns false if the writer was not found
+  bool remove_writer(const std::string &name);
+
+  enum Level get_level() const;
+  void  set_level(enum Level level);
+
+  unsigned int get_flags() const;
+  template<typename ...F>
+  void set_flags(F&&... flags)
+  {
+    this->flags = 0;
+    add_flags(flags...);
+  }
+  template<typename ...F>
+  void add_flags(Flags flag, F&&... flags)
+  {
+    this->flags = this->flags | (unsigned int) flag;
+    add_flags(flags...);
+  }
+  // Base case
+  inline void add_flags(Flags flag)
+  { this->flags = this->flags | (unsigned int) flag; };
 
   // TODO
   template<typename... Args>
@@ -211,36 +252,193 @@ public:
 
 private:
 
+  static std::string colorize(enum Level level, const std::string &str);
+
   static inline const Formatter default_formatter =
     [](enum Level level, int flags,
        const char* file,
        int line,
        const std::string& log)
   {
-    // TODO
-    auto level_str = level_to_string(level);
-    return "[ " + std::string(level_str) + " ] " + log + "\n";
+    // It ain't pretty, but it does the job
+
+    std::string output;
+
+    bool json = false;
+    bool do_color = false;
+    if (flags & (unsigned int) Flags::Json)
+      json = true;
+    if (flags & (unsigned int) Flags::Color)
+      do_color = true;
+
+    if (json) output += "{ ";
+    
+    if (flags & (unsigned int) Flags::Level)
+    {
+      if (json)
+        output += "\"level\": \"" + level_to_string(level) + "\", ";
+      else
+        output += "[ " + level_to_string(level) + " ] ";
+    }
+    if (flags & (unsigned int) Flags::Date)
+    {
+      auto now = std::chrono::system_clock::now();
+      auto now_time_t = std::chrono::system_clock::to_time_t(now);
+      std::tm now_tm = *std::localtime(&now_time_t);
+      std::ostringstream oss;
+      if (json)
+        oss << "\"date\": \"" << std::put_time(&now_tm, "%Y-%m-%d") << "\", ";
+      else
+        oss << "[ " << std::put_time(&now_tm, "%Y-%m-%d") << " ] ";
+      output += oss.str();
+    }
+    if (flags & (unsigned int) Flags::Time)
+    {
+      auto now = std::chrono::system_clock::now();
+      auto now_time_t = std::chrono::system_clock::to_time_t(now);
+      std::tm now_tm = *std::localtime(&now_time_t);
+      std::ostringstream oss;
+      if (json)
+        oss << "\"time\": \"" << std::put_time(&now_tm, "%H:%M:%S") << "\", ";
+      else
+        oss << "[ " << std::put_time(&now_tm, "%H:%M:%S") << " ] ";
+      output += oss.str();
+    }
+    if (flags & (unsigned int) Flags::Pid)
+    {
+      std::string pid = std::to_string(getpid());
+      if (json) output += "\"pid\": " + pid + ", ";
+      else output += "[ " + pid + " ] ";
+    }
+    if (flags & (unsigned int) Flags::Tid)
+    {
+      std::ostringstream oss;
+      oss << std::this_thread::get_id();
+      std::string tid = oss.str();
+      if (json)  output += "\"tid\": " + tid + ", ";
+      else output += "[ " + tid + " ] ";
+    }
+    if (flags & (unsigned int) Flags::File)
+    {
+      if (json) output += "\"file\": \"" + std::string(file) + "\", ";
+      else output += "[ " + std::string(file) + " ] ";
+    }
+
+    if (flags & (unsigned int) Flags::Line)
+    {
+      if (json) output += "\"line\": " + std::to_string(line) + ", ";
+      else output += "[ " + std::to_string(line) + " ] ";
+    }
+
+    if (json) output += "\"log\": \"";
+    
+    output += log;
+    
+    if (json) output += "\" }";
+    output += '\n';
+    
+    if (do_color)
+      return colorize(level, output);
+    return output;
   };
   
   enum Level          level = Level::Info;
-  unsigned long int   flags = Flags::Default;
+  unsigned long int   flags = (int)Flags::Default;
   std::vector<Event>  events;
 
   Formatter           formatter = default_formatter;
-  std::vector<std::shared_ptr<Writer>> writers;
-  
+  std::vector<std::shared_ptr<Writer>> writers;  
 };
 
 //
 // Global logger
 //
 
-Logger _oak_global_logger;
+Logger& get_global();
   
 template<typename... Args>
-static inline void log(enum oak::Level level, const char* file, int line, const char* fmt, Args &&...args)
-{
-  oak::_oak_global_logger.log2(level, file, line, fmt, args...);
-}
+static inline void log2(enum oak::Level level, const char* file, int line, const char* fmt, Args &&...args)
+{ oak::get_global().log2(level, file, line, fmt, args...); }
+
+template<typename... Args>
+static inline void log(enum oak::Level level, const char* fmt, Args &&...args)
+{ oak::get_global().log(level, fmt, args...); }
+
+template<typename W, typename ...Args>
+static inline void add_writer(Args &&...init_args)
+{ oak::get_global().add_writer<W>(init_args...); }
+
+static inline bool remove_writer(const std::string &name)
+{ return oak::get_global().remove_writer(name); }
+
+static inline enum Level get_level()
+{ return oak::get_global().get_level(); }
+static inline void  set_level(enum Level level)
+{ oak::get_global().set_level(level); }
+
+static inline unsigned int get_flags()
+{ return oak::get_global().get_flags(); }
+template<typename ...F>
+void set_flags(F&&...flags)
+{ oak::get_global().set_flags(flags...); }
+template<typename ...F>
+void add_flags(F&&...flags)
+{ oak::get_global().add_flags(flags...); }
   
 } // namespace oak
+
+template <> struct std::formatter<oak::Level>
+{
+  constexpr auto parse(format_parse_context &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const oak::Level &level, FormatContext &ctx) const
+  {
+    switch (level)
+    {
+    case oak::Level::Error:
+      return format_to(ctx.out(), "error");
+    case oak::Level::Warn:
+      return format_to(ctx.out(), "warn");
+    case oak::Level::Info:
+      return format_to(ctx.out(), "info");
+    case oak::Level::Debug:
+      return format_to(ctx.out(), "debug");
+    default:
+      return format_to(ctx.out(), "unknown");
+    }
+  }
+};
+
+template <> struct std::formatter<oak::Flags>
+{
+  constexpr auto parse(format_parse_context &ctx)
+  {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const oak::Flags &flags, FormatContext &ctx) const
+  {
+    switch (flags)
+    {
+    case oak::Flags::None:
+      return format_to(ctx.out(), "none");
+    case oak::Flags::Level:
+      return format_to(ctx.out(), "level");
+    case oak::Flags::Date:
+      return format_to(ctx.out(), "date");
+    case oak::Flags::Time:
+      return format_to(ctx.out(), "time");
+    case oak::Flags::Tid:
+      return format_to(ctx.out(), "pid");
+    case oak::Flags::Tid:
+      return format_to(ctx.out(), "tid");
+    default:
+      return format_to(ctx.out(), "unknown");
+    }
+  }
+};

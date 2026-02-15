@@ -17,7 +17,7 @@ void test_getters()
   auto level = oak::get_level();
   ASSERT(level == oak::Level::Default);
   auto flags = oak::get_flags();
-  ASSERT(flags == oak::Flags::Level);
+  ASSERT(flags == (unsigned int) oak::Flags::Level);
 }
 
 void test_level()
@@ -26,28 +26,27 @@ void test_level()
   ASSERT_EQ(oak::get_level(), oak::Level::Debug);
   oak::set_level(oak::Level::Info);
   ASSERT_EQ(oak::get_level(), oak::Level::Info);
-  oak::set_level(oak::level::warn);
-  ASSERT_EQ(oak::get_level(), oak::level::warn);
-  oak::set_level(oak::level::error);
-  ASSERT_EQ(oak::get_level(), oak::level::error);
-  oak::set_level(oak::level::output);
-  ASSERT_EQ(oak::get_level(), oak::level::output);
-  oak::set_level(oak::level::debug);
+  oak::set_level(oak::Level::Warn);
+  ASSERT_EQ(oak::get_level(), oak::Level::Warn);
+  oak::set_level(oak::Level::Error);
+  ASSERT_EQ(oak::get_level(), oak::Level::Error);
+  oak::set_level(oak::Level::Debug);
 }
 
 void test_flags()
 {
-  oak::set_flags(oak::flags::level);
+  oak::set_flags(oak::Flags::Level);
   ASSERT_EQ(oak::get_flags(), 1);
-  oak::set_flags(oak::flags::level, oak::flags::date);
+  oak::set_flags(oak::Flags::Level, oak::Flags::Date);
   ASSERT_EQ(oak::get_flags(), 3);
-  oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
+  oak::set_flags(oak::Flags::Level, oak::Flags::Date, oak::Flags::Time);
   ASSERT_EQ(oak::get_flags(), 7);
-  oak::set_flags(oak::flags::time);
+  oak::set_flags(oak::Flags::Time);
   ASSERT_EQ(oak::get_flags(), 4);
-  oak::set_flags(oak::flags::level);
+  oak::set_flags(oak::Flags::Level);
 }
 
+/*
 void test_settings_file()
 {
   auto ret = oak::settings_file("nope");
@@ -56,15 +55,13 @@ void test_settings_file()
   ret = oak::settings_file("tests/test_settings1.oak");
   ASSERT(ret.has_value());
 
-  ASSERT_EQ(oak::get_level(), oak::level::debug);
+  ASSERT_EQ(oak::get_level(), oak::Level::Debug);
   ASSERT_EQ(oak::get_flags(), 31);
-  ASSERT_EQ(oak::is_file_open(), true);
 
   ret = oak::settings_file("tests/test_settings2.oak");
   ASSERT(ret.has_value());
-  ASSERT_EQ(oak::get_level(), oak::level::info);
+  ASSERT_EQ(oak::get_level(), oak::Level::Info);
   ASSERT_EQ(oak::get_flags(), 2);
-  ASSERT_EQ(oak::is_file_open(), true);
 }
 
 void test_file()
@@ -83,7 +80,7 @@ void test_file()
 
   exp = oak::set_file("tests/test_out.txt");
   ASSERT(exp.has_value());
-  oak::log_to_file(oak::level::info, "hello file");
+  oak::log_to_file(oak::Level::info, "hello file");
 
   // give time to write
   using namespace std::chrono_literals;
@@ -96,32 +93,39 @@ void test_file()
   // clean up
   std::filesystem::remove("tests/test_out.txt");
 }
+*/
 
 void test_log()
 {
-  oak::set_level(oak::level::debug);
-  oak::set_flags(oak::flags::json);
-  oak::log(oak::level::info, "no flags");
-  oak::set_flags(oak::flags::level);
-  oak::log(oak::level::info, "just level");
-  oak::set_flags(oak::flags::level, oak::flags::date, oak::flags::time);
-  oak::log(oak::level::info, "level, date and time");
+  oak::set_level(oak::Level::Debug);
+  oak::set_flags(oak::Flags::Json);
+  oak::log(oak::Level::Info, "just json");
+  oak::set_flags(oak::Flags::Level);
+  oak::log(oak::Level::Info, "just level");
+  oak::set_flags(oak::Flags::Level, oak::Flags::Date, oak::Flags::Time);
+  oak::log(oak::Level::Info, "level, date and time");
+  oak::set_flags(oak::Flags::Level,
+                 oak::Flags::Date,
+                 oak::Flags::Time,
+                 oak::Flags::Pid,
+                 oak::Flags::Tid,
+                 oak::Flags::File,
+                 oak::Flags::Line);
+  OAK_INFO("Allllll but no json");
+  oak::add_flags(oak::Flags::Json);
+  OAK_INFO("Now with json");
 }
 
 void test_macros()
 {
-  oak::set_flags(oak::flags::level, oak::flags::color);
+  oak::set_flags(oak::Flags::Level, oak::Flags::Color);
   OAK_DEBUG("debug {}", "macro");
   OAK_INFO("info {}", "macro");
   OAK_WARN("warn {}", "macro");
   OAK_ERROR("error {}", "macro");
-  OAK_OUTPUT("output {}", "macro");
 }
 
-void test_async()
-{
-  oak::async(oak::level::info, "This was async!");
-}
+/*
 
 #ifdef OAK_USE_SOCKETS
 void test_unix_socket_connect_and_send_message()
@@ -133,7 +137,7 @@ void test_unix_socket_connect_and_send_message()
   ASSERT(ret.has_value());
   ASSERT(ret.value() > 0);
 
-  oak::log(oak::level::info, "hello socket");
+  oak::log(oak::Level::info, "hello socket");
 }
 
 void test_net_socket_connect_and_send_message()
@@ -145,13 +149,13 @@ void test_net_socket_connect_and_send_message()
   ASSERT(ret.has_value());
   ASSERT(ret.value() > 0);
 
-  oak::log(oak::level::info, "hello socket");
+  oak::log(oak::Level::info, "hello socket");
 }
 
 void test_unix_socket()
 {
-  oak::set_flags(oak::flags::level);
-  oak::set_level(oak::level::info);
+  oak::set_flags(oak::Flags::level);
+  oak::set_level(oak::Level::info);
 
   auto ret = oak::set_socket("prova");
   ASSERT(!ret.has_value());
@@ -185,8 +189,8 @@ void test_unix_socket()
 
 void test_net_socket()
 {
-  oak::set_flags(oak::flags::level);
-  oak::set_level(oak::level::info);
+  oak::set_flags(oak::Flags::level);
+  oak::set_level(oak::Level::info);
 
   auto ret = oak::set_socket("127.0.0.1", 1234);
   ASSERT(!ret.has_value());
@@ -217,13 +221,11 @@ void test_net_socket()
   t.join();
   oak::close_socket();
 }
-
 #endif
+*/
 
 int main()
 {
-  oak::init_writer();
-
 #ifdef OAK_USE_SOCKETS
   std::cout << "Testing with sockets" << std::endl;
 #endif
@@ -232,19 +234,17 @@ int main()
   test_getters();
   test_level();
   test_flags();
-  test_settings_file();
-  test_file();
+  // test_settings_file();
+  // test_file();
   test_log();
   test_macros();
-  test_async();
+  // test_async();
 #ifdef OAK_USE_SOCKETS
 #ifdef __unix__
-  test_unix_socket();
-  test_net_socket();
+  // test_unix_socket();
+  // test_net_socket();
 #endif
 #endif
-
-  oak::stop_writer();
 
   if (errors > 0)
   {

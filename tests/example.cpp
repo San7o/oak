@@ -7,8 +7,6 @@
 
 int main()
 {
-  oak::init_writer();
-
   auto r = oak::settings_file("settings.oak");
   if (!r.has_value())
   {
@@ -18,7 +16,5 @@ int main()
 
   std::string name = "Mario";
   oak::out("Hello {}", name);
-
-  oak::stop_writer();
   return 0;
 }

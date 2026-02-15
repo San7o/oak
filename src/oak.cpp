@@ -7,7 +7,7 @@
 
 using namespace oak;
 
-const char* oak::level_to_string(enum Level level)
+std::string oak::level_to_string(enum Level level)
 {
   switch (level)
   {
@@ -93,10 +93,20 @@ void FileWriter::write(const std::string& str)
   return;
 }
 
+std::string FileWriter::get_name()
+{
+  return "file_writer";
+}
+
 void StdoutWriter::write(const std::string& str)
 {
   std::print("{}", str);
   return;
+}
+
+std::string StdoutWriter::get_name()
+{
+  return "stdout_writer";
 }
 
 Logger::Logger()
@@ -107,21 +117,87 @@ Logger::Logger()
   std::jthread t([writer] { writer->write_loop(); });
   t.detach();
 
-  OAK_INFO2(this, "[ OAK ] Initialized writer");
+  OAK_INFO2(this, "[ OAK ] Initialized writer {}", writer->get_name());
 }
 
-template<typename ...Args>
-void Logger::log2(enum Level level, const char* file, int line,
-                  const char *fmt, Args &&...args)
+bool Logger::remove_writer(const std::string &name)
 {
-  if (level < this->level) return;
-    
-  std::string formatted = std::vformat(fmt, std::make_format_args(args...));
-
-  std::string output = this->formatter(level, flags, file, line, formatted);
-    
-  for (auto& writer : writers)
+  for (auto it = this->writers.begin(); it != this->writers.end(); ++it)
   {
-    writer->write(output);
+    if ((*it)->get_name() == name)
+    {
+      this->writers.erase(it);
+      OAK_INFO2(this, "Removed writer {}", name);
+      return true;
+    }
   }
+  return false;
+}
+
+enum Level Logger::get_level() const
+{
+  return this->level;
+}
+
+void Logger::set_level(enum Level level)
+{
+  this->level = level;
+  return;
+}
+
+unsigned int Logger::get_flags() const
+{
+  return this->flags;
+}
+
+// Colors
+
+// Foregound
+#define RST "\x1B[0m"
+#define KRED "\x1B[31m"
+#define KGRN "\x1B[32m"
+#define KYEL "\x1B[33m"
+#define KBLU "\x1B[34m"
+#define KMAG "\x1B[35m"
+#define KCYN "\x1B[36m"
+#define KWHT "\x1B[37m"
+
+// for string literals
+#define FRED(x) KRED x RST
+#define FGRN(x) KGRN x RST
+#define FYEL(x) KYEL x RST
+#define FBLU(x) KBLU x RST
+#define FMAG(x) KMAG x RST
+#define FCYN(x) KCYN x RST
+#define FWHT(x) KWHT x RST
+
+#define FRED_S(x) std::string(KRED) + x + std::string(RST)
+#define FGRN_S(x) std::string(KGRN) + x + std::string(RST)
+#define FYEL_S(x) std::string(KYEL) + x + std::string(RST)
+#define FBLU_S(x) std::string(KBLU) + x + std::string(RST)
+#define FMAG_S(x) std::string(KMAG) + x + std::string(RST)
+#define FCYN_S(x) std::string(KCYN) + x + std::string(RST)
+#define FWHT_S(x) std::string(KWHT) + x + std::string(RST)
+
+std::string Logger::colorize(enum Level level, const std::string &str)
+{
+  switch (level)
+  {
+  case Level::Debug:
+    return FCYN_S(str);
+  case Level::Info:
+    return FBLU_S(str);
+  case Level::Warn:
+    return FYEL_S(str);
+  case Level::Error:
+    return FRED_S(str);
+  default:
+    return str;
+  }
+}
+
+Logger& oak::get_global()
+{
+  static Logger instance;
+  return instance;
 }
