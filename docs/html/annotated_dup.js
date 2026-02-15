@@ -1,11 +1,13 @@
 var annotated_dup =
 [
     [ "oak", "namespaceoak.html", [
-      [ "logger", "structoak_1_1logger.html", "structoak_1_1logger" ],
-      [ "queue_element", "structoak_1_1queue__element.html", "structoak_1_1queue__element" ]
+      [ "FileWriter", "classoak_1_1FileWriter.html", "classoak_1_1FileWriter" ],
+      [ "Logger", "classoak_1_1Logger.html", "classoak_1_1Logger" ],
+      [ "StdoutWriter", "classoak_1_1StdoutWriter.html", "classoak_1_1StdoutWriter" ],
+      [ "Writer", "classoak_1_1Writer.html", "classoak_1_1Writer" ]
     ] ],
     [ "std", null, [
-      [ "formatter< oak::flags >", "structstd_1_1formatter_3_01oak_1_1flags_01_4.html", "structstd_1_1formatter_3_01oak_1_1flags_01_4" ],
-      [ "formatter< oak::level >", "structstd_1_1formatter_3_01oak_1_1level_01_4.html", "structstd_1_1formatter_3_01oak_1_1level_01_4" ]
+      [ "formatter< oak::Flags >", "structstd_1_1formatter_3_01oak_1_1Flags_01_4.html", "structstd_1_1formatter_3_01oak_1_1Flags_01_4" ],
+      [ "formatter< oak::Level >", "structstd_1_1formatter_3_01oak_1_1Level_01_4.html", "structstd_1_1formatter_3_01oak_1_1Level_01_4" ]
     ] ]
 ];

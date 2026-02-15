@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['queue_5felement_0',['queue_element',['../structoak_1_1queue__element.html',1,'oak']]]
+  ['stdoutwriter_0',['StdoutWriter',['../classoak_1_1StdoutWriter.html',1,'oak']]]
 ];

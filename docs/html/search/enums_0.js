@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['destination_0',['destination',['../namespaceoak.html#a7b615c83decb75b49aebf1675c0fea40',1,'oak']]]
+  ['flags_0',['Flags',['../namespaceoak.html#a4fa55ac018569abccc4340ab40bd5749',1,'oak']]]
 ];

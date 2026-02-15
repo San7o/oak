@@ -1,7 +1,7 @@
 ![oak-banner](./docs/oak_banner.jpeg)
 
 Oak is a lightweight logging library written in C++23, designed to
-simplify logging in modern C++ applications. 
+simplify logging in modern C++ applications.
 
 This code was originally forked from the logger of [Brenta
 Engine](https://github.com/San7o/Brenta-Engine) in order to develop it
@@ -9,41 +9,21 @@ independently from the engine.
 
 ## Features
 
-
-- **Thread-Safety**: Oak ensures safe logging in multi-threaded
-  environments, preventing data races and synchronization issues.
-- **Minimal Overhead**: Optimized for performance, Oak introduces
-  minimal runtime overhead, ensuring it doesn't compromise the speed
-  of your application.
-- **Simplicity and Ease of Use**: Oak's API is intuitive, allowing you
-  to integrate it seamlessly into your project without a steep
-  learning curve.
-- **Customization**: Oak offers a range of customization options,
-  allowing you to tailor the logging experience to your specific
-  requirements.
-
-- **multiple logging levels**
-
-- **log to file**
-
-- **log to unix sockets**
-
-- **log to net sockets**
-
-- **log metadata**
-
-- **settings file**
-
-- **json serialization**
-
-- **log buffering**
-
-- **async logging**
+- Thread safe
+- Non-blocking publisher-subscriber pattern: each [writer](#writers)
+  runs on its own thread and keeps a local queue of the logs that need
+  to be written, so the log call does not need to wait for the output
+  to be written
+- Customization: Oak is designed with a modular architecture
+  so you can easily extend its functionalities and implement new ones (see [writers](#writers) and [formatters](#formatters))
+- Log levels API
+- Event logging API
+- Load configuration from a settings file
+- Simple API
 
 # Usage
 
-If you don't want to mess with your build system, you can simply copy
-[include/oak/oak.hpp](./include/oak/oak.hpp) and
+You can simply copy [include/oak/oak.hpp](./include/oak/oak.hpp) and
 [src/oak.cpp](./src/oak.cpp) in your imports and sources
 respectively. Alternatively, you can add this repository as a git
 submodule and register it in cmake as a subdirectory, or fetch it
@@ -56,117 +36,172 @@ CPMAddPackage(
     GIT_TAG origin/main)
 ```
 
-## Quick Tour
-
-To learn about all the functionalities, please visit the [html
-documentation](https://san7o.github.io/oak/). Here is presented a
-quick guide to showcase the library's api.
-
-### The writer
-
-The logger uses a writer to read the message queue and correctly
-writes the output in the specified location, allowing buffering.
+There is a single header, `oak.hpp`:
 
 ```c++
-#include <oak/oak.cpp>
-// ...
-
-oak::init_writer();
-// Do stuff and have fun here
-oak::stop_writer();
+#include <oak/oak.hpp>
 ```
 
-### How to log
-
-Log something with the level `info`:
+You can create a local `Logger` object, its resources will be
+automatically cleaned when it goes out of scope.
 
 ```c++
-oak::info("i love {}!", what);
+auto logger = oak::Logger();
 ```
 
-```bash
-# output
-[level=info] i love oak!
-```
+There is also a global logger that is accessible thought static
+functions with the same signature as a local logger, like
+`oak::log(...)` instead of `logger.log(...)`.
 
-Or use macros if you prefer:
+## Log level API
+
+You have several logging levels of increasing priority: `Debug`,
+`Info`, `Warn` and `Error`. You can set which level is enabled,
+meaning that only logs that have the same or higher priority will be
+considered.
 
 ```c++
-OAK_INFO("add a {} to this library!", star);
+logger.info("I use arch, btw");
+logger.error("You got an error");
+
+// Using the global logger
+logger::info("I use arch, btw");
+logger::error("You got an error");
 ```
 
-### Set the Log level
+Example output:
 
-Only logs with an higher level will be logged:
+```
+INFO  2026-02-15 14:08:35 | I use arch, btw
+ERROR 2026-02-15 14:08:35 | You got an error
+```
+
+To collect the file and line of where the log was generated, use the
+macro:
+
+```
+OAK_DEBUG("Now oak known where this was generated")
+OAK_DEBUG2(&logger, "With DEBUG2 we can specify the address of a logger");
+```
+
+## Event API
+
+Other than log levels, oak provides an event API which lets you
+generate events of a certain type (identified by a number) which will
+be logged only if event logging for that type is enabled.
+
+Here is an example
 
 ```c++
-oak::set_level(oak::level::debug);
+logger.set_flags(Flags::Json, Flags::Time);   // log additional metadata
+logger.enable_event(allocation_event_id, "allocation");
+logger.disable_event(exit_event_id, "exit");  // all events are disabled by default
+
+// This will be logged
+logger.event(allocation_event_id, "I have allocated something right here");
+// This will not be logged
+logger.event(exit_event_id, "Exiting example");
 ```
 
-### Add metadata
+Output:
 
 ```c++
-oak::set_flags(oak::flags::level, oak::flags::date);
+{
+  "event": "allocation",
+  "data": {
+    "time": "14:05:29",
+    "log": "I have allocated something right here"
+  }
+}
 ```
 
-```bash
-# example output
-[level=info,date=2024-09-11] nice
-```
+You can imagine how this can be used to trace all memory
+allocations/deallocations, or network usage / connections on
+demand. Since the output can be very noisy, it can be enabled and
+disabled based on what you need to debug.
 
-You can also serialize the log adding the flag `oak::flags::json`:
+## Settings
 
-```
-{ "level": "output", "date": "2024-09-11", "time": "15:35:20", "pid": 30744, "tid": 9992229128130766714, "message": "Hello Mario" }
-```
-
-### Log to file
+You tune the logger via getter / setters for the various values. The
+most important ones are the `level`, which sets up the logger so that
+it processes only logs of a certain level or higher, and `flags` which
+configure the logger to log additional metadata or with special
+formatting (such as json or color).
 
 ```c++
-auto file = oak::set_file("/tmp/my-log");
-if (!file.has_value())
-    oak::error("Error setting file: {}", file.error());
+logger.set_level(oak::Level::Debug);
+logger.set_flags(oak::Flags::File, oak::Flags::Line, oak::Flags::Time);
 ```
 
-The library uses `std::expected` to handle errors.
-
-### Log to socket
+With all flags enabled, the output would look like this:
 
 ```c++
-// unix sockets
-oak::set_socket("/tmp/a-socket");
-// net socket, defaults to tcp
-oak::set_socket("127.0.0.1", 1337);
-// udp net socket
-oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
+{
+  "level": "INFO ",
+  "date": "2026-02-15",
+  "time": "14:14:46",
+  "pid": 14080,
+  "tid": 139927568701312,
+  "file": "/home/santo/projects/oak/tests/oak_tests.cpp",
+  "line": 120,
+  "log": "Now with json"
+}
 ```
 
-### Settings file
+You can also load the settings from a configuration file:
 
-You can save the settings in a file with `key=value,...`, like this:
-
+```c++
+logger.load_config_file("settings.oak");
 ```
+
+A config file looks like this:
+
+```c++
 level = debug
-flags = level, date, time, pid, tid
-file = tests/log_test.txt
-```
-And use this settings like so:
-```c++
-auto r = oak::settings_file("settings.oak");
-if (!r.has_value())
-    oak::error("Error opening setting file: {}", r.error());
+flags = level, date, time, tid, pid
+file = build/some_log.txt
 ```
 
-### Async logging
+## Writers
+
+When you log something, oak will properly format your string and send
+it to its writers. Conceptually, the logger is a single producer, and
+the writers are multiple consumers of the log data. Each writer runs
+on its own thread, and when data is sent to it, it will update a local
+queue of logs which will be written to some output. The specific
+output depends on the implementation of the writer. By default, oak
+provides the `FileWriter` and `StdoutWriter` classes, and only the
+`StdoutWriter` is enabled by default.
+
+The logger does not wait for the writer to finish writing since each
+writer has its own log queue, which makes the logger really fast.
+
+You can add and remove writers with the `add_writer` and
+`remove_writer` api:
 
 ```c++
-oak::async(oak::level:debug, "Time travelling");
+logger.add_writer<oak::FileWriter>("tests/test_out.txt");
+logger.remove_writer(FileWriter::name); // the name is used to identify a writer
+```
+
+## Formatters
+
+Before sending the log to the writers, the log input needs to be
+formatted. For example, the string "Hello, I am {} form {}" needs to
+be completed, additional metadata needs to be added based on the
+flags, and other customization such as coloring.
+
+The user can specify a formatter function which can be used instead of
+the default one, enabling greater customizability and flexilibty.
+
+```c++
+logger.set_formatter(my_formatter);
 ```
 
 # Contributing
 
 Any new contributor is welcome to this project. Please read
-[CONTRIBUTING](./docs/CONTRIBUTING.md) for intructions on how to
+[CONTRIBUTING](./docs/CONTRIBUTING.md) for instructions on how to
 contribute.
 
 ## Testing

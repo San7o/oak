@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['dest_0',['dest',['../structoak_1_1queue__element.html#aeff7d97a192e240e451d85fa72698449',1,'oak::queue_element']]]
+  ['name_0',['name',['../structoak_1_1Event.html#a072d095facd265f392ffdb4fcc7200d3',1,'oak::Event']]]
 ];

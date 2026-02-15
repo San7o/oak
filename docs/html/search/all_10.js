@@ -1,6 +1,11 @@
 var searchData=
 [
-  ['parse_0',['parse',['../structstd_1_1formatter_3_01oak_1_1level_01_4.html#ad17c96414fcbfc0d9184b1dc063bece3',1,'std::formatter&lt; oak::level &gt;::parse()'],['../structstd_1_1formatter_3_01oak_1_1flags_01_4.html#a3ff8b76d23f33d1289011e1eca3217f0',1,'std::formatter&lt; oak::flags &gt;::parse()']]],
-  ['pid_1',['pid',['../namespaceoak.html#a26bbe3500c6ef5e91075c754b418c999a0db3209e1adc6d67be435a81baf9a66e',1,'oak']]],
-  ['protocol_5ft_2',['protocol_t',['../namespaceoak.html#a0f2c6c3049081d89ea342c333939ba9c',1,'oak']]]
+  ['set_5fflags_0',['set_flags',['../classoak_1_1Logger.html#aeb2e726d10bea98e7dee3c17613998ef',1,'oak::Logger::set_flags()'],['../namespaceoak.html#ad4bb3520c9cd9d02757e2054787aedbb',1,'oak::set_flags()']]],
+  ['set_5fformatter_1',['set_formatter',['../classoak_1_1Logger.html#a761866f6e576cb8bf589a0ead334f85c',1,'oak::Logger']]],
+  ['set_5flevel_2',['set_level',['../classoak_1_1Logger.html#ac252d91ea8acbfc62bd43f42dcf1ba33',1,'oak::Logger::set_level()'],['../namespaceoak.html#aff685d96c794deb06d3b7bac8b05a629',1,'oak::set_level()']]],
+  ['settings_3',['Settings',['../index.html#settings',1,'']]],
+  ['stdoutwriter_4',['stdoutwriter',['../classoak_1_1StdoutWriter.html',1,'oak::StdoutWriter'],['../classoak_1_1StdoutWriter.html#a07525989f38ca7a7793975257b51c446',1,'oak::StdoutWriter::StdoutWriter()']]],
+  ['stop_5',['stop',['../classoak_1_1Writer.html#ab10399863ed4f919064e6313ea162a86',1,'oak::Writer']]],
+  ['submit_6',['submit',['../classoak_1_1Writer.html#af32aa4d8ad5f4c7b35f2bc2052f59a1f',1,'oak::Writer']]],
+  ['suggesting_20features_7',['Suggesting Features',['../md_docs_2CONTRIBUTING.html#autotoc_md3',1,'']]]
 ];

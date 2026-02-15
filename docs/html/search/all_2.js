@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['bold_0',['BOLD',['../oak_8hpp.html#a8d6c06f3e6f93ac985b046d40b63ae43',1,'oak.hpp']]],
-  ['bold_5fs_1',['BOLD_S',['../oak_8hpp.html#a562b524ae2c35a22b4ae3471ec6c8f04',1,'oak.hpp']]],
-  ['bugs_2',['Reporting Bugs',['../md_docs_2CONTRIBUTING.html#autotoc_md2',1,'']]]
+  ['code_0',['Contributing Code',['../md_docs_2CONTRIBUTING.html#autotoc_md4',1,'']]],
+  ['color_1',['Color',['../namespaceoak.html#a4fa55ac018569abccc4340ab40bd5749acb5feb1b7314637725a2e73bdc9f7295',1,'oak']]],
+  ['contribute_2',['How to Contribute',['../md_docs_2CONTRIBUTING.html#autotoc_md1',1,'']]],
+  ['contributing_20code_3',['Contributing Code',['../md_docs_2CONTRIBUTING.html#autotoc_md4',1,'']]],
+  ['contributing_20to_20the_20engine_4',['Contributing to the Engine',['../md_docs_2CONTRIBUTING.html',1,'']]],
+  ['contributing_2emd_5',['CONTRIBUTING.md',['../CONTRIBUTING_8md.html',1,'']]]
 ];

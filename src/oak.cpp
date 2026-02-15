@@ -7,117 +7,217 @@
 
 using namespace oak;
 
-long unsigned int oak::logger::flag_bits = 1;
-oak::level oak::logger::log_level = oak::level::warn;
-std::ofstream oak::logger::log_file;
-std::deque<queue_element> oak::logger::log_queue;
-std::mutex oak::logger::log_mutex;
-std::condition_variable oak::logger::log_cv;
-std::atomic<bool> oak::logger::close_writer = false;
-std::optional<std::jthread> oak::logger::writer_thread;
-#ifdef OAK_USE_SOCKETS
-int oak::logger::log_socket = -1;
-#endif
-
-[[nodiscard]] std::expected<int, std::string>
-oak::set_file(const std::string &file)
+std::string oak::level_to_string(enum Level level)
 {
-  std::lock_guard<std::mutex> lock(logger::log_mutex);
-  if (logger::log_file.is_open())
+  switch (level)
   {
-    logger::log_file.close();
+  case oak::Level::Debug:    return "DEBUG";
+  case oak::Level::Info:     return "INFO ";
+  case oak::Level::Warn:     return "WARN ";
+  case oak::Level::Error:    return "ERROR";
+  case oak::Level::Disabled: return "DISABLED";
+  default:                   return "UNKNOWN";
   }
-  logger::log_file.open(file, std::ios::app);
-  if (!logger::log_file.is_open())
-  {
-    return std::unexpected("Could not open log file");
-  }
-  if (!logger::log_file.good())
-  {
-    return std::unexpected("Error opening log file");
-  }
-  return 0;
 }
 
-void oak::close_file()
-{
-  std::lock_guard<std::mutex> lock(logger::log_mutex);
-  if (logger::log_file.is_open())
-    logger::log_file.close();
-}
 
-#ifdef OAK_USE_SOCKETS
-void oak::close_socket()
-{
-  std::lock_guard<std::mutex> lock(logger::log_mutex);
-  if (logger::log_socket > 0)
-    close(logger::log_socket);
-}
-#endif
-
-void oak::add_to_queue(const std::string &str, const destination &d)
+void Writer::submit(const std::string &log)
 {
   {
-    std::lock_guard<std::mutex> lock(logger::log_mutex);
-    logger::log_queue.push_back({str, d});
+    std::lock_guard<std::mutex> lock(this->logs_mutex);
+    this->logs.push(log);
   }
-  logger::log_cv.notify_one();
+  this->cv.notify_one();  // unlock the consumer
 }
 
-void oak::writer()
+Writer::~Writer()
 {
-  while (!logger::close_writer.load())
+  this->stop();
+}
+
+void Writer::write_loop()
+{          
+  while (1)
   {
-    std::unique_lock<std::mutex> lock(logger::log_mutex);
-    logger::log_cv.wait(
-      lock,
-      [] { return !logger::log_queue.empty() || logger::close_writer.load(); });
-    while (!logger::log_queue.empty())
+    std::queue<std::string> local_logs = {};
     {
-      auto elem = logger::log_queue.front();
-      logger::log_queue.pop_front();
-      switch (elem.dest)
-      {
-      case oak::destination::std_out:
-        std::cout << elem.message;
-        break;
-      case oak::destination::file:
-        logger::log_file << elem.message;
-        break;
-      case oak::destination::socket:
-      {
-#ifdef OAK_USE_SOCKETS
-        auto _ =
-          write(logger::log_socket, elem.message.c_str(), elem.message.size());
-#endif
-        break;
-      }
-      default:
-        break;
-      }
+      std::unique_lock<std::mutex> lock(this->logs_mutex);
+        
+      this->cv.wait(lock, [this] {
+        // When this evaluates to true, this block stops waiting
+        // Note that this is checked before waiting in the
+        // first place, and is checked every time a notification
+        // is sent.
+        return !this->logs.empty() || this->should_stop;
+      });
+
+      if (this->should_stop && this->logs.empty()) return;
+          
+      std::swap(local_logs, this->logs);  // instant swap
+    } // logs_mutex released
+      
+    while(!local_logs.empty())
+    {
+      this->write(local_logs.front());
+      local_logs.pop();
     }
   }
 }
 
-void oak::init_writer()
+void Writer::stop()
 {
-  logger::writer_thread.emplace([] { writer(); });
+  {
+    std::lock_guard<std::mutex> lock(this->logs_mutex);
+    this->should_stop = true;
+  }
+  this->cv.notify_all(); // Wake up the consumer so it sees should_stop is true
+  return;
 }
 
-void oak::stop_writer()
+FileWriter::FileWriter(const std::filesystem::path &path)
 {
-  logger::close_writer = true;
-  logger::log_cv.notify_one();
-  if (logger::writer_thread.has_value())
-    logger::writer_thread.value().join();
+  auto file = std::ofstream(path);
+  if (!file.is_open())
+  {
+    std::print("[ERROR] [oak] Error creating writer for file {}", path.c_str());
+    return;
+  }
+
+  this->out = std::move(file);
 }
 
-[[nodiscard]] std::expected<int, std::string>
-oak::settings_file(const std::string &file)
+void FileWriter::write(const std::string& str)
 {
-  if (file.size() == 0)
-    return std::unexpected("Settings file path is empty");
+  if (this->out.is_open())
+    this->out << str;
+  return;
+}
 
+const std::string FileWriter::name = "file_writer";
+
+std::string FileWriter::get_name()
+{
+  return FileWriter::name;
+}
+
+void StdoutWriter::write(const std::string& str)
+{
+  std::print("{}", str);
+  return;
+}
+
+const std::string StdoutWriter::name = "stdout_writer";
+
+std::string StdoutWriter::get_name()
+{
+  return StdoutWriter::name;
+}
+
+Logger::Logger()
+{
+  auto writer = std::make_shared<StdoutWriter>();
+  this->writers.push_back(writer);
+    
+  std::jthread t([writer] { writer->write_loop(); });
+  t.detach();
+
+  OAK_INFO2(this, "[ OAK ] Initialized writer {}", writer->get_name());
+}
+
+bool Logger::remove_writer(const std::string &name)
+{
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
+  for (auto it = this->writers.begin(); it != this->writers.end(); ++it)
+  {
+    if ((*it)->get_name() == name)
+    {
+      this->writers.erase(it);
+      OAK_INFO2(this, "Removed writer {}", name);
+      return true;
+    }
+  }
+  return false;
+}
+
+enum Level Logger::get_level() const
+{
+  return this->level;
+}
+
+void Logger::set_level(enum Level level)
+{
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
+  this->level = level;
+  return;
+}
+
+void Logger::set_formatter(Formatter formatter)
+{
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
+  this->formatter = formatter;
+  return;
+}
+
+unsigned int Logger::get_flags() const
+{
+  return this->flags;
+}
+
+// Colors
+
+// Foregound
+#define RST "\x1B[0m"
+#define KRED "\x1B[31m"
+#define KGRN "\x1B[32m"
+#define KYEL "\x1B[33m"
+#define KBLU "\x1B[34m"
+#define KMAG "\x1B[35m"
+#define KCYN "\x1B[36m"
+#define KWHT "\x1B[37m"
+
+// for string literals
+#define FRED(x) KRED x RST
+#define FGRN(x) KGRN x RST
+#define FYEL(x) KYEL x RST
+#define FBLU(x) KBLU x RST
+#define FMAG(x) KMAG x RST
+#define FCYN(x) KCYN x RST
+#define FWHT(x) KWHT x RST
+
+#define FRED_S(x) std::string(KRED) + x + std::string(RST)
+#define FGRN_S(x) std::string(KGRN) + x + std::string(RST)
+#define FYEL_S(x) std::string(KYEL) + x + std::string(RST)
+#define FBLU_S(x) std::string(KBLU) + x + std::string(RST)
+#define FMAG_S(x) std::string(KMAG) + x + std::string(RST)
+#define FCYN_S(x) std::string(KCYN) + x + std::string(RST)
+#define FWHT_S(x) std::string(KWHT) + x + std::string(RST)
+
+std::string Logger::colorize(enum Level level, const std::string &str)
+{
+  switch (level)
+  {
+  case Level::Debug:
+    return FCYN_S(str);
+  case Level::Info:
+    return FBLU_S(str);
+  case Level::Warn:
+    return FYEL_S(str);
+  case Level::Error:
+    return FRED_S(str);
+  default:
+    return str;
+  }
+}
+
+Logger& oak::get_global()
+{
+  static Logger instance;
+  return instance;
+}
+
+std::expected<int, std::string>
+Logger::load_config_file(const std::filesystem::path& file)
+{
   if (!std::filesystem::exists(file))
   {
     return std::unexpected("Settings file does not exist");
@@ -141,67 +241,61 @@ oak::settings_file(const std::string &file)
     if (key == "level")
     {
       if (value == "debug")
-        set_level(level::debug);
+        set_level(Level::Debug);
       else if (value == "info")
-        set_level(level::info);
+        set_level(Level::Info);
       else if (value == "warn")
-        set_level(level::warn);
+        set_level(Level::Warn);
       else if (value == "error")
-        set_level(level::error);
-      else if (value == "output")
-        set_level(level::output);
+        set_level(Level::Error);
       else
         return std::unexpected("Invalid log level in file");
     }
     else if (key == "flags")
     {
-      set_flags(flags::none);
+      set_flags(Flags::None);
       while (value.find(',') != std::string::npos)
       {
         std::string flag = value.substr(0, value.find(','));
         value = value.substr(value.find(',') + 1);
         if (flag == "none")
-          add_flags(flags::none);
+          add_flags(Flags::None);
         else if (flag == "level")
-          add_flags(flags::level);
+          add_flags(Flags::Level);
         else if (flag == "date")
-          add_flags(flags::date);
+          add_flags(Flags::Date);
         else if (flag == "time")
-          add_flags(flags::time);
+          add_flags(Flags::Time);
         else if (flag == "pid")
-          add_flags(flags::pid);
+          add_flags(Flags::Pid);
         else if (flag == "tid")
-          add_flags(flags::tid);
+          add_flags(Flags::Tid);
         else if (flag == "json")
-          add_flags(flags::json);
+          add_flags(Flags::Json);
         else
           return std::unexpected("Invalid flags in file");
       }
       // get last element
       if (value == "none")
-        add_flags(flags::none);
+        add_flags(Flags::None);
       else if (value == "level")
-        add_flags(flags::level);
+        add_flags(Flags::Level);
       else if (value == "date")
-        add_flags(flags::date);
+        add_flags(Flags::Date);
       else if (value == "time")
-        add_flags(flags::time);
+        add_flags(Flags::Time);
       else if (value == "pid")
-        add_flags(flags::pid);
+        add_flags(Flags::Pid);
       else if (value == "tid")
-        add_flags(flags::tid);
+        add_flags(Flags::Tid);
       else if (value == "json")
-        add_flags(flags::json);
+        add_flags(Flags::Json);
       else
         return std::unexpected("Invalid flags in file");
     }
     else if (key == "file")
     {
-      auto exp = set_file(value);
-      if (!exp.has_value())
-      {
-        return std::unexpected("Could not open file");
-      }
+      add_writer<FileWriter>(value);
     }
     else
     {
@@ -212,125 +306,82 @@ oak::settings_file(const std::string &file)
   return 0;
 }
 
-void oak::log_to_file(const std::string &str)
+
+
+void Logger::enable_event(unsigned int id, const std::string &name)
 {
-  if (is_file_open())
-    add_to_queue(str, oak::destination::file);
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
+  this->events[id] = name;
 }
 
-#ifdef OAK_USE_SOCKETS
-void oak::log_to_socket(const std::string &str)
+void Logger::disable_event(unsigned int id)
 {
-  if (logger::log_socket > 0)
-    add_to_queue(str, oak::destination::socket);
-}
-#endif
-
-#ifdef OAK_USE_SOCKETS
-#ifdef __unix__
-[[nodiscard]] std::expected<int, std::string>
-oak::set_socket(const std::string &sock_addr)
-{
-  std::lock_guard<std::mutex> lock(logger::log_mutex);
-  if (sock_addr.size() > 108)
-  {
-    return std::unexpected("Socket address too long, max 108 characters");
-  }
-
-  if (logger::log_socket > 0)
-  {
-    close(logger::log_socket);
-  }
-
-  logger::log_socket = socket(AF_UNIX, SOCK_STREAM, 0);
-  if (logger::log_socket < 0)
-  {
-    return std::unexpected("Could not create socket");
-  }
-
-  struct sockaddr_un sockaddr_un;
-  sockaddr_un.sun_family = AF_UNIX;
-  strcpy(sockaddr_un.sun_path, sock_addr.c_str());
-  if (connect(logger::log_socket, (struct sockaddr *) &sockaddr_un,
-              sizeof(sockaddr_un))
-      < 0)
-  {
-    return std::unexpected("Could not connect to socket");
-  }
-
-  return logger::log_socket;
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
+  this->events.erase(id);
 }
 
-[[nodiscard]] std::expected<int, std::string>
-oak::set_socket(const std::string &addr, short unsigned int port,
-                const protocol_t &protocol)
+std::string Logger::json_formatter(enum Level level, int flags,
+                                   const char* file, int line,
+                                   const std::string& log)
 {
-  std::lock_guard<std::mutex> lock(logger::log_mutex);
-  if (logger::log_socket > 0)
+  std::string output;
+  bool do_color = false;
+  
+  if (flags & (unsigned int) Flags::Color) do_color = true;
+  
+  output += "{ ";
+    
+  if (flags & (unsigned int) Flags::Level)
   {
-    close(logger::log_socket);
+    output += "\"level\": \"" + level_to_string(level) + "\", ";
+  }
+  if (flags & (unsigned int) Flags::Date)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_time_t);
+    std::ostringstream oss;
+    oss << "\"date\": \"" << std::put_time(&now_tm, "%Y-%m-%d") << "\", ";
+    output += oss.str();
+  }
+  if (flags & (unsigned int) Flags::Time)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_time_t);
+    std::ostringstream oss;
+    oss << "\"time\": \"" << std::put_time(&now_tm, "%H:%M:%S") << "\", ";
+    output += oss.str();
+  }
+  if (flags & (unsigned int) Flags::Pid)
+  {
+    std::string pid = std::to_string(getpid());
+    output += "\"pid\": " + pid + ", ";
+  }
+  if (flags & (unsigned int) Flags::Tid)
+  {
+    std::ostringstream oss;
+    oss << std::this_thread::get_id();
+    std::string tid = oss.str();
+    output += "\"tid\": " + tid + ", ";
+  }
+  if (flags & (unsigned int) Flags::File)
+  {
+    output += "\"file\": \"" + std::string(file) + "\", ";
   }
 
-  switch (protocol)
+  if (flags & (unsigned int) Flags::Line)
   {
-  case protocol_t::tcp:
-    logger::log_socket = socket(AF_INET, SOCK_STREAM, 0);
-    break;
-  case protocol_t::udp:
-    logger::log_socket = socket(AF_INET, SOCK_DGRAM, 0);
-    break;
-  default:
-    return std::unexpected("Invalid protocol");
-  };
-  logger::log_socket = socket(AF_INET, SOCK_STREAM, 0);
-  if (logger::log_socket < 0)
-  {
-    return std::unexpected("Could not create socket");
+    output += "\"line\": " + std::to_string(line) + ", ";
   }
 
-  struct sockaddr_in sockaddr_in;
-  sockaddr_in.sin_family = AF_INET;
-  sockaddr_in.sin_port = htons(port);
-  if (inet_pton(AF_INET, addr.c_str(), &sockaddr_in.sin_addr) <= 0)
-  {
-    return std::unexpected("Invalid address");
-  }
-
-  if (connect(logger::log_socket, (struct sockaddr *) &sockaddr_in,
-              sizeof(sockaddr_in))
-      < 0)
-  {
-    return std::unexpected("Could not connect to socket");
-  }
-
-  return logger::log_socket;
-}
-#endif
-#endif
-
-void oak::flush()
-{
-  std::lock_guard<std::mutex> lock(logger::log_mutex);
-  std::cout << std::flush;
-  if (logger::log_file.is_open())
-    logger::log_file << std::flush;
-}
-
-std::string oak::apply_color(const level &lvl, const std::string &str)
-{
-  switch (lvl)
-  {
-  case level::debug:
-    return FCYN_S(str);
-  case level::info:
-    return FBLU_S(str);
-  case level::warn:
-    return FYEL_S(str);
-  case level::error:
-    return FRED_S(str);
-  case level::output:
-    return FGRN_S(str);
-  default:
-    return str;
-  }
+  output += "\"log\": \"";
+  output += log;
+    
+  output += "\" }";
+  output += '\n';
+    
+  if (do_color)
+    return Logger::colorize(level, output);
+  return output;
 }

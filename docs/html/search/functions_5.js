@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['get_5fflags_0',['get_flags',['../namespaceoak.html#af3691201328a4c65b68de961d342a2c7',1,'oak']]],
-  ['get_5flevel_1',['get_level',['../namespaceoak.html#adba1f324b98b8d394da43726357971ba',1,'oak']]]
+  ['info_0',['info',['../classoak_1_1Logger.html#a8b63d4cc0174eae97caadffd12b2587d',1,'oak::Logger']]],
+  ['info2_1',['info2',['../classoak_1_1Logger.html#a4ec717eecad223a3000c58c61cd838eb',1,'oak::Logger']]]
 ];

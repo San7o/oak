@@ -1,5 +1,26 @@
 var searchData=
 [
-  ['engine_0',['Contributing to the Engine',['../md_docs_2CONTRIBUTING.html',1,'']]],
-  ['error_1',['error',['../namespaceoak.html#a48cea29d373e8ca7e14a72ec3c0bfb85',1,'oak::error(const std::string &amp;fmt, Args &amp;&amp;...args)'],['../namespaceoak.html#ae0e233add26270e8f3d67ab1f15e30edacb5e100e5a9a3e7f6d1fd97512215282',1,'oak::error']]]
+  ['fblu_0',['FBLU',['../oak_8cpp.html#a7efc4f68a50a41c6a93ece87dd6c7dec',1,'oak.cpp']]],
+  ['fblu_5fs_1',['FBLU_S',['../oak_8cpp.html#aea3f37a4c1f3fe17c8072f3912bb032d',1,'oak.cpp']]],
+  ['fcyn_2',['FCYN',['../oak_8cpp.html#a707fab975ef99b4f89ff740f55d14602',1,'oak.cpp']]],
+  ['fcyn_5fs_3',['FCYN_S',['../oak_8cpp.html#a17ea4e445c52c8b295201f3012b27d07',1,'oak.cpp']]],
+  ['features_4',['features',['../index.html#features',1,'Features'],['../md_docs_2CONTRIBUTING.html#autotoc_md3',1,'Suggesting Features']]],
+  ['fgrn_5',['FGRN',['../oak_8cpp.html#ab3968f7b5009845811dc102a5b53d898',1,'oak.cpp']]],
+  ['fgrn_5fs_6',['FGRN_S',['../oak_8cpp.html#ae77b7e98785ca72031ce6edfc1bb9de4',1,'oak.cpp']]],
+  ['file_7',['File',['../namespaceoak.html#a4fa55ac018569abccc4340ab40bd5749a0b27918290ff5323bea1e3b78a9cf04e',1,'oak']]],
+  ['filewriter_8',['filewriter',['../classoak_1_1FileWriter.html#a362feb0d9546a31a57cfd6c929086444',1,'oak::FileWriter::FileWriter()'],['../classoak_1_1FileWriter.html',1,'oak::FileWriter']]],
+  ['flags_9',['Flags',['../namespaceoak.html#a4fa55ac018569abccc4340ab40bd5749',1,'oak']]],
+  ['fmag_10',['FMAG',['../oak_8cpp.html#a957ecba768167bfb215a4bf97e7a0533',1,'oak.cpp']]],
+  ['fmag_5fs_11',['FMAG_S',['../oak_8cpp.html#a68890f51e101cc67cfcb3948b78cc116',1,'oak.cpp']]],
+  ['format_12',['format',['../structstd_1_1formatter_3_01oak_1_1Flags_01_4.html#a5467f73c9d868bc8eff06eb5f4782ee1',1,'std::formatter&lt; oak::Flags &gt;::format()'],['../structstd_1_1formatter_3_01oak_1_1Level_01_4.html#abe709cbc55350e0ab2ff3a21f2201080',1,'std::formatter&lt; oak::Level &gt;::format()']]],
+  ['formatter_13',['Formatter',['../classoak_1_1Logger.html#a3846041c7dada7c3e37827c46687c587',1,'oak::Logger']]],
+  ['formatter_3c_20oak_3a_3aflags_20_3e_14',['formatter&lt; oak::Flags &gt;',['../structstd_1_1formatter_3_01oak_1_1Flags_01_4.html',1,'std']]],
+  ['formatter_3c_20oak_3a_3alevel_20_3e_15',['formatter&lt; oak::Level &gt;',['../structstd_1_1formatter_3_01oak_1_1Level_01_4.html',1,'std']]],
+  ['formatters_16',['Formatters',['../index.html#formatters',1,'']]],
+  ['fred_17',['FRED',['../oak_8cpp.html#ae5b789f4a8f720ec20a544c58f9c204d',1,'oak.cpp']]],
+  ['fred_5fs_18',['FRED_S',['../oak_8cpp.html#a32caf1108e7ab7a9d03d211b23e084dd',1,'oak.cpp']]],
+  ['fwht_19',['FWHT',['../oak_8cpp.html#a312c671f34e0d7a772e43cd63bc0f31b',1,'oak.cpp']]],
+  ['fwht_5fs_20',['FWHT_S',['../oak_8cpp.html#adc52eac7331aa9d5560974b38ea714bc',1,'oak.cpp']]],
+  ['fyel_21',['FYEL',['../oak_8cpp.html#a4bae6c5147cf3957a90c9c6f5b37faac',1,'oak.cpp']]],
+  ['fyel_5fs_22',['FYEL_S',['../oak_8cpp.html#a2659930c675df2c912ee0ecd2a604674',1,'oak.cpp']]]
 ];
