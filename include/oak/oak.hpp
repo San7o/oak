@@ -37,6 +37,9 @@ namespace oak
 #define OAK_INFO2(logger, ...)  OAK_LOG2(logger, oak::Level::Info, __VA_ARGS__)
 #define OAK_WARN2(logger, ...)  OAK_LOG2(logger, oak::Level::Warn, __VA_ARGS__)
 #define OAK_ERROR2(logger, ...) OAK_LOG2(logger, oak::Level::Error, __VA_ARGS__)
+
+#define OAK_EVENT(type, ...)    oak::event(type, __VA_ARGS__);
+#define OAK_EVENT2(type, logger, ...) logger.event(type, __VA_ARGS__);
   
 enum class Level
 {
@@ -259,6 +262,9 @@ static inline void enable_event(unsigned int id,
 
 static inline void disable_event(unsigned int id);
 
+template<typename... Args>
+static inline void event(unsigned int id, const char *fmt, Args &&...args);
+  
 #include "oak.impl"
   
 } // namespace oak

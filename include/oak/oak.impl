@@ -177,3 +177,6 @@ static inline void enable_event(unsigned int id,
 static inline void disable_event(unsigned int id)
 { oak::get_global().disable_event(id); }
 
+template<typename... Args>
+static inline void event(unsigned int id, const char *fmt, Args &&...args)
+{ oak::get_global().event(id, fmt, args...); }

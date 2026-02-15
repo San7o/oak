@@ -15,7 +15,7 @@
 /// 
 /// - Thread safe
 /// - Non-blocking publisher-subscriber pattern: each [writer](#writers)
-///   runs on its own thread and keeps a local queue of the logs that need
+///   runs on its own thread and keeps a local queue of the logs that have
 ///   to be written, so the log call does not need to wait for the output
 ///   to be written
 /// - Customization: Oak is designed with a modular architecture
@@ -68,8 +68,8 @@
 /// logger.error("You got an error");
 /// 
 /// // Using the global logger
-/// logger::info("I use arch, btw");
-/// logger::error("You got an error");
+/// oak::info("I use arch, btw");
+/// oak::error("You got an error");
 /// ```
 /// 
 /// Example output:

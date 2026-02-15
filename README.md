@@ -49,9 +49,9 @@ automatically cleaned when it goes out of scope.
 auto logger = oak::Logger();
 ```
 
-There is also a global logger that is accessible thought static
-functions with the same signature as a local logger, like
-`oak::log(...)` instead of `logger.log(...)`.
+There is also a global logger that is accessible thought functions
+with the same signature as a local logger, like `oak::log(...)`
+instead of `logger.log(...)`.
 
 ## Log level API
 
@@ -65,8 +65,8 @@ logger.info("I use arch, btw");
 logger.error("You got an error");
 
 // Using the global logger
-logger::info("I use arch, btw");
-logger::error("You got an error");
+oak::info("I use arch, btw");
+oak::error("You got an error");
 ```
 
 Example output:
