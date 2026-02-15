@@ -48,6 +48,7 @@ enum class Level
   Warn      = 2,
   Error     = 3,
   Disabled  = 4,
+  Event     = 5,
   Default   = Info,
 };
 
@@ -289,6 +290,8 @@ template <> struct std::formatter<oak::Level>
       return format_to(ctx.out(), "info");
     case oak::Level::Debug:
       return format_to(ctx.out(), "debug");
+    case oak::Level::Event:
+      return format_to(ctx.out(), "event");
     default:
       return format_to(ctx.out(), "unknown");
     }

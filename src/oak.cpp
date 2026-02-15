@@ -16,6 +16,7 @@ std::string oak::level_to_string(enum Level level)
   case oak::Level::Warn:     return "WARN ";
   case oak::Level::Error:    return "ERROR";
   case oak::Level::Disabled: return "DISABLED";
+  case oak::Level::Event:    return "EVENT";
   default:                   return "UNKNOWN";
   }
 }
@@ -121,7 +122,7 @@ Logger::Logger()
   std::jthread t([writer] { writer->write_loop(); });
   t.detach();
 
-  OAK_INFO2(this, "[ OAK ] Initialized writer {}", writer->get_name());
+  OAK_INFO2(this, "oak: Initialized writer {}", writer->get_name());
 }
 
 bool Logger::remove_writer(const std::string &name)
@@ -132,7 +133,7 @@ bool Logger::remove_writer(const std::string &name)
     if ((*it)->get_name() == name)
     {
       this->writers.erase(it);
-      OAK_INFO2(this, "Removed writer {}", name);
+      OAK_INFO2(this, "oak: Removed writer {}", name);
       return true;
     }
   }

@@ -114,7 +114,7 @@ void Logger::event2(const char* file, int line, unsigned int id,
     
   auto name = events[id];
   auto formatted = std::vformat(fmt, std::make_format_args(args...));
-  formatted = this->formatter(get_level(), flags, file, line, formatted);
+  formatted = this->formatter(Level::Event, flags, file, line, formatted);
   auto flags = get_flags();
 
   std::string output;
@@ -123,7 +123,7 @@ void Logger::event2(const char* file, int line, unsigned int id,
     formatted[formatted.size() -1] = ' '; // remove newline
     output = " { \"event\": \"" + name + "\", \"data\": " + formatted + "}\n";
   }
-  else output = "[ " + name + " ] " + formatted;
+  else output = name + " " + formatted;
 
   for (auto& writer : this->writers)
   {

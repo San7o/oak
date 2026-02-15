@@ -233,7 +233,6 @@ void test_net_socket()
 void test_event()
 {
   oak::Logger logger = oak::Logger();
-  logger.set_flags(oak::Flags::Json, oak::Flags::Time);
   logger.enable_event(0, "traces");
   logger.enable_event(1, "entry");
   logger.enable_event(2, "exit");
@@ -241,6 +240,9 @@ void test_event()
 
   logger.event(3, "I have allocated something right here");
   logger.event(4, "You should not be able to read this");
+
+  logger.set_flags(oak::Flags::Json, oak::Flags::Time);
+  logger.event(3, "Event event event");
 }
 
 int main()
