@@ -122,6 +122,7 @@ Logger::Logger()
 
 bool Logger::remove_writer(const std::string &name)
 {
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
   for (auto it = this->writers.begin(); it != this->writers.end(); ++it)
   {
     if ((*it)->get_name() == name)
@@ -141,12 +142,14 @@ enum Level Logger::get_level() const
 
 void Logger::set_level(enum Level level)
 {
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
   this->level = level;
   return;
 }
 
 void Logger::set_formatter(Formatter formatter)
 {
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
   this->formatter = formatter;
   return;
 }
@@ -303,11 +306,13 @@ Logger::load_config_file(const std::filesystem::path& file)
 
 void Logger::activate_event(unsigned int id, const std::string &name)
 {
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
   this->events[id] = name;
 }
 
 void Logger::deactivate_event(unsigned int id)
 {
+  std::lock_guard<std::mutex> lock(this->logger_mutex);
   this->events.erase(id);
 }
   

@@ -11,11 +11,11 @@ int main()
   auto r = logger.load_config_file("settings.oak");
   if (!r.has_value())
   {
-    oak::error("Error opening setting file: {}", r.error());
+    logger.error("Error opening setting file: {}", r.error());
     return 1;
   }
 
   std::string name = "Mario";
-  logger.out("Hello {}", name);
+  logger.info("Hello {}", name);
   return 0;
 }

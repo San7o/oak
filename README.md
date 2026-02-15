@@ -14,7 +14,7 @@ independently from the engine.
 - Customization: Oak is designed with a modular architecture so you
   can easily implement new writers and formatters.
 - Support for multiple logging levels, event logging, json formatting...
-- Load a settings file**
+- Load a settings file
 
 # Usage
 
@@ -37,10 +37,10 @@ To learn about all the functionalities, please visit the [html
 documentation](https://san7o.github.io/oak/). Here is presented a
 quick guide to showcase the library's api.
 
-There is a single header, `oak.cpp`:
+There is a single header, `oak.hpp`:
 
 ```c++
-#include <oak/oak.cpp>
+#include <oak/oak.hpp>
 ```
 
 You can create a local `Logger` object, its resources will be

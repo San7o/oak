@@ -240,6 +240,8 @@ public:
   void event2(const char* file, int line, unsigned int id,
               const char *fmt, Args &&...args)
   {
+    std::lock_guard<std::mutex> lock(this->logger_mutex);
+    
     if (!events.contains(id)) return;
 
     std::string str = std::vformat(fmt, std::make_format_args(args...));
@@ -362,6 +364,7 @@ private:
   
   enum Level          level = Level::Info;
   unsigned long int   flags = (int)Flags::Default;
+  std::mutex          logger_mutex;
   std::unordered_map<unsigned int, std::string>  events;
 
   Formatter           formatter = default_formatter;
