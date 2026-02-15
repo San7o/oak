@@ -113,13 +113,12 @@ $(document).ready(function(){initNavTree('oak_8hpp.html',''); initResizable(); }
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;expected&gt;</code><br />
+<code>#include &quot;oak.impl&quot;</code><br />
 </div>
 <p><a href="oak_8hpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structoak_1_1Event.html">oak::Event</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoak_1_1Writer.html">oak::Writer</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classoak_1_1FileWriter.html">oak::FileWriter</a></td></tr>
@@ -194,35 +193,39 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a1276730aa34e03fe243bdb28f45cb0ca" id="r_a1276730aa34e03fe243bdb28f45cb0ca"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a1276730aa34e03fe243bdb28f45cb0ca">oak::level_to_string</a> (enum <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">Level</a> level)</td></tr>
+<tr class="memitem:a1276730aa34e03fe243bdb28f45cb0ca" id="r_a1276730aa34e03fe243bdb28f45cb0ca"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a1276730aa34e03fe243bdb28f45cb0ca">oak::level_to_string</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">enum</a> <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">Level</a> level)</td></tr>
 <tr class="separator:a1276730aa34e03fe243bdb28f45cb0ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05ab93d96be422efdeae1b2609c408fe" id="r_a05ab93d96be422efdeae1b2609c408fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classoak_1_1Logger.html">Logger</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a05ab93d96be422efdeae1b2609c408fe">oak::get_global</a> ()</td></tr>
 <tr class="separator:a05ab93d96be422efdeae1b2609c408fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3874f9378570b2f79048ed9ccaf13ca8" id="r_a3874f9378570b2f79048ed9ccaf13ca8"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:a3874f9378570b2f79048ed9ccaf13ca8"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a3874f9378570b2f79048ed9ccaf13ca8">oak::log2</a> (enum <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">oak::Level</a> level, const char *file, int line, const char *fmt, Args &amp;&amp;...args)</td></tr>
+<tr class="memitem:a3874f9378570b2f79048ed9ccaf13ca8"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a3874f9378570b2f79048ed9ccaf13ca8">oak::log2</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">enum</a> <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">oak::Level</a> level, <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">const</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">char</a> *<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">file</a>, <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">int</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">line</a>, <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">const</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">char</a> *<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">fmt</a>, <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">Args</a> &amp;&amp;...<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">args</a>)</td></tr>
 <tr class="separator:a3874f9378570b2f79048ed9ccaf13ca8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a54ed18d903dd23c0e2dd60869ae02f" id="r_a4a54ed18d903dd23c0e2dd60869ae02f"><td class="memTemplParams" colspan="2">template&lt;typename... Args&gt; </td></tr>
-<tr class="memitem:a4a54ed18d903dd23c0e2dd60869ae02f"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a4a54ed18d903dd23c0e2dd60869ae02f">oak::log</a> (enum <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">oak::Level</a> level, const char *fmt, Args &amp;&amp;...args)</td></tr>
+<tr class="memitem:a4a54ed18d903dd23c0e2dd60869ae02f"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a4a54ed18d903dd23c0e2dd60869ae02f">oak::log</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">enum</a> <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">oak::Level</a> level, <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">const</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">char</a> *<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">fmt</a>, <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">Args</a> &amp;&amp;...<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">args</a>)</td></tr>
 <tr class="separator:a4a54ed18d903dd23c0e2dd60869ae02f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32236d2a83aec72787a62f682a886ada" id="r_a32236d2a83aec72787a62f682a886ada"><td class="memTemplParams" colspan="2">template&lt;typename W , typename ... Args&gt; </td></tr>
 <tr class="memitem:a32236d2a83aec72787a62f682a886ada"><td class="memTemplItemLeft" align="right" valign="top">static void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">oak::add_writer</a> (Args &amp;&amp;...init_args)</td></tr>
 <tr class="separator:a32236d2a83aec72787a62f682a886ada"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af51bfe4870628dad9398f9a485cf59e8" id="r_af51bfe4870628dad9398f9a485cf59e8"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#af51bfe4870628dad9398f9a485cf59e8">oak::remove_writer</a> (const std::string &amp;name)</td></tr>
+<tr class="memitem:af51bfe4870628dad9398f9a485cf59e8" id="r_af51bfe4870628dad9398f9a485cf59e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">bool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#af51bfe4870628dad9398f9a485cf59e8">oak::remove_writer</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">const</a> std::string &amp;name)</td></tr>
 <tr class="separator:af51bfe4870628dad9398f9a485cf59e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae42dff8cb5aea9ba50bd6b09944b1ca2" id="r_ae42dff8cb5aea9ba50bd6b09944b1ca2"><td class="memItemLeft" align="right" valign="top">static enum <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">Level</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#ae42dff8cb5aea9ba50bd6b09944b1ca2">oak::get_level</a> ()</td></tr>
+<tr class="memitem:ae42dff8cb5aea9ba50bd6b09944b1ca2" id="r_ae42dff8cb5aea9ba50bd6b09944b1ca2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">enum</a> <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">Level</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#ae42dff8cb5aea9ba50bd6b09944b1ca2">oak::get_level</a> ()</td></tr>
 <tr class="separator:ae42dff8cb5aea9ba50bd6b09944b1ca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aff685d96c794deb06d3b7bac8b05a629" id="r_aff685d96c794deb06d3b7bac8b05a629"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#aff685d96c794deb06d3b7bac8b05a629">oak::set_level</a> (enum <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">Level</a> level)</td></tr>
+<tr class="memitem:aff685d96c794deb06d3b7bac8b05a629" id="r_aff685d96c794deb06d3b7bac8b05a629"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#aff685d96c794deb06d3b7bac8b05a629">oak::set_level</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">enum</a> <a class="el" href="namespaceoak.html#a3a8c0302cc3be0e2464ed1e94c15ca91">Level</a> level)</td></tr>
 <tr class="separator:aff685d96c794deb06d3b7bac8b05a629"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9344db6ec692d7073da1427ff5f663af" id="r_a9344db6ec692d7073da1427ff5f663af"><td class="memItemLeft" align="right" valign="top">static unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a9344db6ec692d7073da1427ff5f663af">oak::get_flags</a> ()</td></tr>
+<tr class="memitem:a9344db6ec692d7073da1427ff5f663af" id="r_a9344db6ec692d7073da1427ff5f663af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">unsigned</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">int</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a9344db6ec692d7073da1427ff5f663af">oak::get_flags</a> ()</td></tr>
 <tr class="separator:a9344db6ec692d7073da1427ff5f663af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9de5ae6ae17bcebb898a22e06c5bf3ce" id="r_a9de5ae6ae17bcebb898a22e06c5bf3ce"><td class="memTemplParams" colspan="2">template&lt;typename ... F&gt; </td></tr>
-<tr class="memitem:a9de5ae6ae17bcebb898a22e06c5bf3ce"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a9de5ae6ae17bcebb898a22e06c5bf3ce">oak::set_flags</a> (F &amp;&amp;...flags)</td></tr>
-<tr class="separator:a9de5ae6ae17bcebb898a22e06c5bf3ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e22c0b6aa5a51e857c01fb8fb21013a" id="r_a5e22c0b6aa5a51e857c01fb8fb21013a"><td class="memTemplParams" colspan="2">template&lt;typename ... F&gt; </td></tr>
-<tr class="memitem:a5e22c0b6aa5a51e857c01fb8fb21013a"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a5e22c0b6aa5a51e857c01fb8fb21013a">oak::add_flags</a> (F &amp;&amp;...flags)</td></tr>
-<tr class="separator:a5e22c0b6aa5a51e857c01fb8fb21013a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a375b8ea7bbcbff16da91f8ae48532962" id="r_a375b8ea7bbcbff16da91f8ae48532962"><td class="memItemLeft" align="right" valign="top">std::expected&lt; int, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a375b8ea7bbcbff16da91f8ae48532962">oak::load_config_file</a> (const std::filesystem::path &amp;file)</td></tr>
-<tr class="separator:a375b8ea7bbcbff16da91f8ae48532962"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4bb3520c9cd9d02757e2054787aedbb" id="r_ad4bb3520c9cd9d02757e2054787aedbb"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">typename</a> ... F&gt; </td></tr>
+<tr class="memitem:ad4bb3520c9cd9d02757e2054787aedbb"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#ad4bb3520c9cd9d02757e2054787aedbb">oak::set_flags</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">F</a> &amp;&amp;...flags)</td></tr>
+<tr class="separator:ad4bb3520c9cd9d02757e2054787aedbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54c9f114dedac8bc625910e26e0da94d" id="r_a54c9f114dedac8bc625910e26e0da94d"><td class="memTemplParams" colspan="2">template&lt;<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">typename</a> ... F&gt; </td></tr>
+<tr class="memitem:a54c9f114dedac8bc625910e26e0da94d"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">void</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a54c9f114dedac8bc625910e26e0da94d">oak::add_flags</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">F</a> &amp;&amp;...flags)</td></tr>
+<tr class="separator:a54c9f114dedac8bc625910e26e0da94d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17c1b524521be45282c641998405a850" id="r_a17c1b524521be45282c641998405a850"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> std::expected&lt; <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">int</a>, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a17c1b524521be45282c641998405a850">oak::load_config_file</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">const</a> std::filesystem::path &amp;<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">file</a>)</td></tr>
+<tr class="separator:a17c1b524521be45282c641998405a850"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abfc880f7773029b0852653f2f2a59068" id="r_abfc880f7773029b0852653f2f2a59068"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#abfc880f7773029b0852653f2f2a59068">oak::enable_event</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">unsigned</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">int</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">id</a>, <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">const</a> std::string &amp;name)</td></tr>
+<tr class="separator:abfc880f7773029b0852653f2f2a59068"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a468882fd4888594ab3bd921a93057516" id="r_a468882fd4888594ab3bd921a93057516"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">static</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">void</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceoak.html#a468882fd4888594ab3bd921a93057516">oak::disable_event</a> (<a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">unsigned</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">int</a> <a class="el" href="namespaceoak.html#a32236d2a83aec72787a62f682a886ada">id</a>)</td></tr>
+<tr class="separator:a468882fd4888594ab3bd921a93057516"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="a2031cc34f0dbb0d874b1df6ba1d4b6f5" name="a2031cc34f0dbb0d874b1df6ba1d4b6f5"></a>
@@ -241,7 +244,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00035">35</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00028">28</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -271,7 +274,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00041">41</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00034">34</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -291,7 +294,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00038">38</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00031">31</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -321,7 +324,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00044">44</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00037">37</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -341,7 +344,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00036">36</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00029">29</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -371,7 +374,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00042">42</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00035">35</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -401,7 +404,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00034">34</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00027">27</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -437,7 +440,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00040">40</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00033">33</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -457,7 +460,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00037">37</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00030">30</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>
@@ -487,7 +490,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00043">43</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="oak_8hpp_source.html#l00036">36</a> of file <a class="el" href="oak_8hpp_source.html">oak.hpp</a>.</p>
 
 </div>
 </div>

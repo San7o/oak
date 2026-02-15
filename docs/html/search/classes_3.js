@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['stdoutwriter_0',['StdoutWriter',['../classoak_1_1StdoutWriter.html',1,'oak']]]
+  ['writer_0',['Writer',['../classoak_1_1Writer.html',1,'oak']]]
 ];

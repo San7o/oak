@@ -101,6 +101,9 @@ class FileWriter : public Writer
 {
 public:
 
+  static const std::string name; // set the name as static to make it
+                                 // easily accessible
+  
   FileWriter(const std::filesystem::path &path);
 
   void write(const std::string& str) override;
@@ -115,7 +118,9 @@ private:
 class StdoutWriter : public Writer
 {
 public:
-    
+
+  static const std::string name;
+  
   StdoutWriter() = default;
   
   void write(const std::string& str) override;
@@ -192,8 +197,9 @@ public:
   
   // Event api
 
-  void activate_event(unsigned int id, const std::string& name);
-  void deactivate_event(unsigned int id);
+  // Only enabled events will be logged
+  void enable_event(unsigned int id, const std::string& name);
+  void disable_event(unsigned int id);
   
   template<typename... Args>
   void event2(const char* file, int line, unsigned int id,
@@ -204,7 +210,9 @@ public:
 private:
 
   static std::string colorize(enum Level level, const std::string &str);
-
+  static std::string json_formatter(enum Level level, int flags,
+                                    const char* file, int line,
+                                    const std::string& log);
   
   enum Level          level = Level::Info;
   unsigned long int   flags = (int)Flags::Default;
@@ -244,10 +252,10 @@ static inline void add_flags(F&&...flags);
 static inline std::expected<int, std::string>
 load_config_file(const std::filesystem::path& file);
 
-static inline void activate_event(unsigned int id,
-                                  const std::string& name);
+static inline void enable_event(unsigned int id,
+                                const std::string& name);
 
-static inline void deactivate_event(unsigned int id);
+static inline void disable_event(unsigned int id);
 
 #include "oak.impl"
   

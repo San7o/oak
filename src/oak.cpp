@@ -12,8 +12,8 @@ std::string oak::level_to_string(enum Level level)
   switch (level)
   {
   case oak::Level::Debug:    return "DEBUG";
-  case oak::Level::Info:     return "INFO";
-  case oak::Level::Warn:     return "WARN";
+  case oak::Level::Info:     return "INFO ";
+  case oak::Level::Warn:     return "WARN ";
   case oak::Level::Error:    return "ERROR";
   case oak::Level::Disabled: return "DISABLED";
   default:                   return "UNKNOWN";
@@ -93,9 +93,11 @@ void FileWriter::write(const std::string& str)
   return;
 }
 
+const std::string FileWriter::name = "file_writer";
+
 std::string FileWriter::get_name()
 {
-  return "file_writer";
+  return FileWriter::name;
 }
 
 void StdoutWriter::write(const std::string& str)
@@ -104,9 +106,11 @@ void StdoutWriter::write(const std::string& str)
   return;
 }
 
+const std::string StdoutWriter::name = "stdout_writer";
+
 std::string StdoutWriter::get_name()
 {
-  return "stdout_writer";
+  return StdoutWriter::name;
 }
 
 Logger::Logger()
@@ -304,15 +308,80 @@ Logger::load_config_file(const std::filesystem::path& file)
 
 
 
-void Logger::activate_event(unsigned int id, const std::string &name)
+void Logger::enable_event(unsigned int id, const std::string &name)
 {
   std::lock_guard<std::mutex> lock(this->logger_mutex);
   this->events[id] = name;
 }
 
-void Logger::deactivate_event(unsigned int id)
+void Logger::disable_event(unsigned int id)
 {
   std::lock_guard<std::mutex> lock(this->logger_mutex);
   this->events.erase(id);
 }
+
+std::string Logger::json_formatter(enum Level level, int flags,
+                                   const char* file, int line,
+                                   const std::string& log)
+{
+  std::string output;
+  bool do_color = false;
   
+  if (flags & (unsigned int) Flags::Color) do_color = true;
+  
+  output += "{ ";
+    
+  if (flags & (unsigned int) Flags::Level)
+  {
+    output += "\"level\": \"" + level_to_string(level) + "\", ";
+  }
+  if (flags & (unsigned int) Flags::Date)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_time_t);
+    std::ostringstream oss;
+    oss << "\"date\": \"" << std::put_time(&now_tm, "%Y-%m-%d") << "\", ";
+    output += oss.str();
+  }
+  if (flags & (unsigned int) Flags::Time)
+  {
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::tm now_tm = *std::localtime(&now_time_t);
+    std::ostringstream oss;
+    oss << "\"time\": \"" << std::put_time(&now_tm, "%H:%M:%S") << "\", ";
+    output += oss.str();
+  }
+  if (flags & (unsigned int) Flags::Pid)
+  {
+    std::string pid = std::to_string(getpid());
+    output += "\"pid\": " + pid + ", ";
+  }
+  if (flags & (unsigned int) Flags::Tid)
+  {
+    std::ostringstream oss;
+    oss << std::this_thread::get_id();
+    std::string tid = oss.str();
+    output += "\"tid\": " + tid + ", ";
+  }
+  if (flags & (unsigned int) Flags::File)
+  {
+    output += "\"file\": \"" + std::string(file) + "\", ";
+  }
+
+  if (flags & (unsigned int) Flags::Line)
+  {
+    output += "\"line\": " + std::to_string(line) + ", ";
+  }
+
+  output += "\"log\": \"";
+  output += log;
+    
+  output += "\" }";
+  output += '\n';
+    
+  if (do_color)
+    return Logger::colorize(level, output);
+  return output;
+}

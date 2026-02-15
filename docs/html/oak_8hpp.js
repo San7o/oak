@@ -1,6 +1,5 @@
 var oak_8hpp =
 [
-    [ "oak::Event", "structoak_1_1Event.html", "structoak_1_1Event" ],
     [ "oak::Writer", "classoak_1_1Writer.html", "classoak_1_1Writer" ],
     [ "oak::FileWriter", "classoak_1_1FileWriter.html", "classoak_1_1FileWriter" ],
     [ "oak::StdoutWriter", "classoak_1_1StdoutWriter.html", "classoak_1_1StdoutWriter" ],
@@ -38,16 +37,18 @@ var oak_8hpp =
       [ "Disabled", "oak_8hpp.html#a3a8c0302cc3be0e2464ed1e94c15ca91ab9f5c797ebbf55adccdd8539a65a0241", null ],
       [ "Default", "oak_8hpp.html#a3a8c0302cc3be0e2464ed1e94c15ca91a7a1920d61156abc05a60135aefe8bc67", null ]
     ] ],
-    [ "add_flags", "oak_8hpp.html#a5e22c0b6aa5a51e857c01fb8fb21013a", null ],
+    [ "add_flags", "oak_8hpp.html#a54c9f114dedac8bc625910e26e0da94d", null ],
     [ "add_writer", "oak_8hpp.html#a32236d2a83aec72787a62f682a886ada", null ],
+    [ "disable_event", "oak_8hpp.html#a468882fd4888594ab3bd921a93057516", null ],
+    [ "enable_event", "oak_8hpp.html#abfc880f7773029b0852653f2f2a59068", null ],
     [ "get_flags", "oak_8hpp.html#a9344db6ec692d7073da1427ff5f663af", null ],
     [ "get_global", "oak_8hpp.html#a05ab93d96be422efdeae1b2609c408fe", null ],
     [ "get_level", "oak_8hpp.html#ae42dff8cb5aea9ba50bd6b09944b1ca2", null ],
     [ "level_to_string", "oak_8hpp.html#a1276730aa34e03fe243bdb28f45cb0ca", null ],
-    [ "load_config_file", "oak_8hpp.html#a375b8ea7bbcbff16da91f8ae48532962", null ],
+    [ "load_config_file", "oak_8hpp.html#a17c1b524521be45282c641998405a850", null ],
     [ "log", "oak_8hpp.html#a4a54ed18d903dd23c0e2dd60869ae02f", null ],
     [ "log2", "oak_8hpp.html#a3874f9378570b2f79048ed9ccaf13ca8", null ],
     [ "remove_writer", "oak_8hpp.html#af51bfe4870628dad9398f9a485cf59e8", null ],
-    [ "set_flags", "oak_8hpp.html#a9de5ae6ae17bcebb898a22e06c5bf3ce", null ],
+    [ "set_flags", "oak_8hpp.html#ad4bb3520c9cd9d02757e2054787aedbb", null ],
     [ "set_level", "oak_8hpp.html#aff685d96c794deb06d3b7bac8b05a629", null ]
 ];

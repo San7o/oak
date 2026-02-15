@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: MIT
+// Author:  Giovanni Santini
+// Mail:    giovanni.santini@proton.me
+// Github:  @San7o
+
 #include "oak/oak.hpp"
 #include "test.hpp"
 
@@ -86,6 +91,7 @@ void test_file()
     std::this_thread::sleep_for(200ms);
 
     ASSERT(std::filesystem::exists("tests/test_out.txt"));
+    logger.remove_writer(oak::FileWriter::name);
   }
 
   ASSERT(std::filesystem::file_size("tests/test_out.txt") > 0);
@@ -228,10 +234,10 @@ void test_event()
 {
   oak::Logger logger = oak::Logger();
   logger.set_flags(oak::Flags::Json, oak::Flags::Time);
-  logger.activate_event(0, "traces");
-  logger.activate_event(1, "entry");
-  logger.activate_event(2, "exit");
-  logger.activate_event(3, "allocation");
+  logger.enable_event(0, "traces");
+  logger.enable_event(1, "entry");
+  logger.enable_event(2, "exit");
+  logger.enable_event(3, "allocation");
 
   logger.event(3, "I have allocated something right here");
   logger.event(4, "You should not be able to read this");

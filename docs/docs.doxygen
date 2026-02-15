@@ -8,223 +8,195 @@
 /// information and practical examples to help you get started with
 /// the Oak logging library.
 /// 
-/// \section Overview
-///
 /// Oak is a lightweight and robust logging library for C++23, designed to
 /// simplify logging in modern C++ applications.
 /// 
-/// Built with modern C++ practices, Oak leverages advanced language
-/// features to offer high performance and flexibility. Key features include:
-/// - **Thread-Safety**: Oak ensures safe logging in multi-threaded environments,
-///                  preventing data races and synchronization issues.
-/// - **Minimal Overhead**: Optimized for performance, Oak introduces minimal
-///                  runtime overhead, ensuring it doesn't compromise the speed
-///                  of your application.
-/// - **Simplicity and Ease of Use**: Oak's API is intuitive, allowing you to integrate
-///                  it seamlessly into your project without a steep learning curve.
-/// - **Customization**: Oak offers a range of customization options, allowing you to
-///                  tailor the logging experience to your specific requirements.
+/// \section features Features
+/// 
+/// - Thread safe
+/// - Non-blocking publisher-subscriber pattern: each [writer](#writers)
+///   runs on its own thread and keeps a local queue of the logs that need
+///   to be written, so the log call does not need to wait for the output
+///   to be written
+/// - Customization: Oak is designed with a modular architecture
+///   so you can easily extend its functionalities and implement new ones (see [writers](#writers) and [formatters](#formatters))
+/// - Log levels API
+/// - Event logging API
+/// - Load configuration from a settings file
+/// - Simple API
+/// 
+/// \section usage Usage
+/// 
+/// You can simply copy `oak.hpp` and `oak.cpp` in your imports and
+/// sources respectively. Alternatively, you can add this repository
+/// as a git submodule and register it in cmake as a subdirectory, or
+/// fetch it using CPM:
+/// 
+/// ```
+/// CPMAddPackage(
+///     NAME oak
+///     GITHUB_REPOSITORY San7o/oak
+///     GIT_TAG origin/main)
+/// ```
 ///
-/// In the following sections, we'll explore Oak's functionality in greater detail
-/// and demonstrate its capabilities through practical examples.
-///
-/// \section start Just start logging
-///
-/// To start logging with Oak, simply include the `oak.hpp` header file in your project and `oak.cpp` in your source files.
-///
-/// That's about it for basic usage.
-///
+/// There is a single header, `oak.hpp`:
+/// 
 /// ```cpp
 /// #include <oak/oak.hpp>
 /// ```
-///
-/// The library uses the `oak` namespace, so you can
-/// access its functionality by prefixing it with `oak::`. All names are in snake_case.
+/// 
+/// You can create a local `Logger` object, its resources will be
+/// automatically cleaned when it goes out of scope.
 /// 
 /// ```cpp
-/// using namespace oak;
+/// auto logger = oak::Logger();
 /// ```
-///
-/// If you want to log to a **socket** (which will be covered more deeply later) you must
-/// compile your program with `OAK_USE_SOCKET`, this is done because you might
-/// not want to include the socket libraries in your project if you don't need them.
-///
-/// ```sh
-/// # example using cmake
-/// cmake -B build -DOAK_USE_SOCKET=ON
-/// ```
-///
-/// \section writer Starting the writer
-///
-/// The logger uses a writer thread to write the logs to the desired output. When a 
-/// new message is created, the message is first evaluated into a `std::string` either
-/// synchronously or asynchronously, depending on which method you use. It is
-/// then safely added to a queue, which is read by the writer thread. As soon
-/// as you add the message, the writer thread will be woken up and It will start writing the
-/// messages to the output until the queue is empty, without blocking the main thread.
-///
-/// To start and stop the writer thread, you can use the `oak::init_writer()` and
-/// `oak::stop_writer()` functions.
-///
+/// 
+/// There is also a global logger that is accessible thought static
+/// functions with the same signature as a local logger, like
+/// `oak::log(...)` instead of `logger.log(...)`.
+/// 
+/// \section log_level Log level API
+/// 
+/// You have several logging levels of increasing priority: `Debug`,
+/// `Info`, `Warn` and `Error`. You can set which level is enabled,
+/// meaning that only logs that have the same or higher priority will be
+/// considered.
+/// 
 /// ```cpp
-/// #include <oak/oak.hpp>
-///
-/// int main() {
-///    oak::init_writer();
-///    // log stuff
-///    oak::stop_writer();
+/// logger.info("I use arch, btw");
+/// logger.error("You got an error");
+/// 
+/// // Using the global logger
+/// logger::info("I use arch, btw");
+/// logger::error("You got an error");
+/// ```
+/// 
+/// Example output:
+/// 
+/// ```
+/// INFO  2026-02-15 14:08:35 | I use arch, btw
+/// ERROR 2026-02-15 14:08:35 | You got an error
+/// ```
+/// 
+/// To collect the file and line of where the log was generated, use the
+/// macro:
+/// 
+/// ```
+/// OAK_DEBUG("Now oak known where this was generated")
+/// OAK_DEBUG2(&logger, "With DEBUG2 we can specify the address of a logger");
+/// ```
+/// 
+/// \section events Event API
+/// 
+/// Other than log levels, oak provides an event API which lets you
+/// generate events of a certain type (identified by a number) which will
+/// be logged only if event logging for that type is enabled.
+/// 
+/// Here is an example
+/// 
+/// ```cpp
+/// logger.set_flags(Flags::Json, Flags::Time);   // log additional metadata
+/// logger.enable_event(allocation_event_id, "allocation");
+/// logger.disable_event(exit_event_id, "exit");  // all events are disabled by default
+/// 
+/// // This will be logged
+/// logger.event(allocation_event_id, "I have allocated something right here");
+/// // This will not be logged
+/// logger.event(exit_event_id, "Exiting example");
+/// ```
+/// 
+/// Output:
+/// 
+/// ```cpp
+/// {
+///   "event": "allocation",
+///   "data": {
+///     "time": "14:05:29",
+///     "log": "I have allocated something right here"
+///   }
 /// }
 /// ```
-///
-/// \section log Log your first message
-/// To log a message, you can use the `oak::log()` function. This function takes a
-/// log level, a format message and any number of arguments to format the message.
+/// 
+/// You can imagine how this can be used to trace all memory
+/// allocations/deallocations, or network usage / connections on
+/// demand. Since the output can be very noisy, it can be enabled and
+/// disabled based on what you need to debug.
+/// 
+/// \section settings Settings
+/// 
+/// You tune the logger via getter / setters for the various values. The
+/// most important ones are the `level`, which sets up the logger so that
+/// it processes only logs of a certain level or higher, and `flags` which
+/// configure the logger to log additional metadata or with special
+/// formatting (such as json or color).
 /// 
 /// ```cpp
-/// oak::log(oak::level::info, "Hello, {}!", name);
+/// logger.set_level(oak::Level::Debug);
+/// logger.set_flags(oak::Flags::File, oak::Flags::Line, oak::Flags::Time);
 /// ```
-///
-/// The messages are formatted using `std::format`, so you can use the same syntax:
-/// every "{}" in the message will be replaced by the next argument.
-///
-/// The log levels are the following:
-/// - `oak::level::debug`
-/// - `oak::level::info`
-/// - `oak::level::warn`
-/// - `oak::level::error`
-/// - `oak::level::output`
-/// - `oak::level::disabled`
 /// 
-/// You can also use the following shorter functions to log messages:
-/// - `oak::debug()`
-/// - `oak::info()`
-/// - `oak::warn()`
-/// - `oak::error()`
-/// - `oak::output()`
-///
-/// ```cpp
-/// oak::info("Hello, {}!", name);
-/// // is equivalent to
-/// oak::log(oak::level::info, "Hello, {}!", name);
-/// ```
-///
-/// Or use macros:
-/// - `OAK_DEBUG()`
-/// - `OAK_INFO()`
-/// - `OAK_WARN()`
-/// - `OAK_ERROR()`
-/// - `OAK_OUTPUT()`
+/// With all flags enabled, the output would look like this:
 /// 
 /// ```cpp
-/// OAK_DEBUG("Hello, {}!", name);
-/// ```
-///
-/// \subsection level Setting the global log level
-///
-/// You can set the global log level with the `oak::set_level()` function.
-/// **Only messages with a level equal or higher than the global log level will be logged**.
-///
-/// ```cpp
-/// oak::set_level(oak::level::info);
-/// ```
-/// The default log level is `oak::level::debug`.
-///
-///
-/// \section destinations Logging to different outputs
-/// The library supports logging to multiple outputs, in particular:
-/// - **File**: Logs to a file.
-/// - **Socket**: Logs to a socket.
-///   - **TCP**: Logs to a TCP socket.
-///   - **UDP**: Logs to a UDP socket.
-///   - **UNIX**: Logs to a UNIX socket.
-/// 
-/// \subsection file Logging to a file
-/// To log to a file, you can use `oak::set_file()`. This function takes the path to the file
-/// and the log level to log to the file, It will return a `std::expected<int, std::string>`
-/// with either the file descriptor or an error message.
-/// ```cpp
-/// auto file = oak::set_file("log.txt");
-/// if (!file.has_value()) {
-///    oak::error("Failed to open file: {}", file.error());
+/// {
+///   "level": "INFO ",
+///   "date": "2026-02-15",
+///   "time": "14:14:46",
+///   "pid": 14080,
+///   "tid": 139927568701312,
+///   "file": "/home/santo/projects/oak/tests/oak_tests.cpp",
+///   "line": 120,
+///   "log": "Now with json"
 /// }
 /// ```
-///
-/// All the next logs will be sent also to the file.
-///
-/// \subsection socket Logging to a socket
-/// To log to a socket, you can use `oak::set_socket()`. This function takes either a
-/// unix socket path for unix sockets or host, port and protocol for network sockets.
-/// For example:
+/// 
+/// You can also load the settings from a configuration file:
+/// 
 /// ```cpp
-/// // unix sockets
-/// oak::set_socket("/tmp/a-socket");
-/// // net socket, defaults to tcp
-/// oak::set_socket("127.0.0.1", 1234);
-/// // udp net socket
-/// oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
-/// ```
-///
-/// Similarly to the file, all the next logs will be sent to the socket.
-///
-/// \section custom Customizing the logger
-///
-/// The library offers a range of customization options to tailor the logging
-/// experience to your specific requirements. More customization ideas are
-/// always welcome, so feel free to open an issue or a pull request.
-///
-/// \subsection format Customizing the log format
-///
-/// You can add automatic metadata to the log messages by enabling any number of
-/// flags with `oak::set_flags()`. The flags are the following:
-/// - `oak::flags::level`: Adds the log level to the log message.
-/// - `oak::flags::date`: Adds the current date to the log message.
-/// - `oak::flags::time`: Adds the current time to the log message.
-/// - `oak::flags::pid`: Adds the process id to the log message.
-/// - `oak::flags::tid`: Adds the thread id to the log message.
-/// - `oak::flags::json`: Serializes the log message to json.
-///
-/// Example:
-/// ```cpp
-/// oak::set_flags(oak::flag::level | oak::flag::date | oak::flag::time);
-/// oak::info("Hello, {}!", name);
-/// ```
-/// ```
-/// [ level=info date=2022-01-01 time=12:00:00 ] Hello, name!
+/// logger.load_config_file("settings.oak");
 /// ```
 /// 
-/// You can serialize the logs to json by enabling the `oak::flags::json` flag.
+/// A config file looks like this:
+/// 
 /// ```cpp
-/// oak::set_flags(oak::flag::json);
-/// oak::info("Hello, {}!", name);
-/// ```
-/// ```
-/// { "level": "info", "date": "2022-01-01", "time": "12:00:00", "message": "Hello, Mario!"}
-/// ```
-///
-/// \section settings Settings file
-///
-/// You can also set the settings from a file, this is useful if
-/// you want to change the settings without recompiling the program.
-/// The setting file contains lines with the format
-/// `key=value1,value2...`.
-/// The allowed keys are:
-/// - `level`: The global log level.
-/// - `flags`: The flags to enable, separated by commas.
-/// - `file`: The file to log to.
-/// All spaces are ignored.
-///
-/// Example:
-/// ```
 /// level = debug
-/// flags = level, date, time, pid, tid
-/// file = tests/log_test.txt
+/// flags = level, date, time, tid, pid
+/// file = build/some_log.txt
 /// ```
-/// \section async Asynchronous logging
-///
-/// By default, the library logs synchronously, meaning that the log message is
-/// formatted immediatly and sent to the writer's queue. You can format the
-/// message asynchronously by using the `oak::async()` function.
-///
+/// 
+/// \section writers Writers
+/// 
+/// When you log something, oak will properly format your string and send
+/// it to its writers. Conceptually, the logger is a single producer, and
+/// the writers are multiple consumers of the log data. Each writer runs
+/// on its own thread, and when data is sent to it, it will update a local
+/// queue of logs which will be written to some output. The specific
+/// output depends on the implementation of the writer. By default, oak
+/// provides the `FileWriter` and `StdoutWriter` classes, and only the
+/// `StdoutWriter` is enabled by default.
+/// 
+/// The logger does not wait for the writer to finish writing since each
+/// writer has its own log queue, which makes the logger really fast.
+/// 
+/// You can add and remove writers with the `add_writer` and
+/// `remove_writer` api:
+/// 
 /// ```cpp
-/// oak::async(oak::level::info, "Hello, {}!", name);
+/// logger.add_writer<oak::FileWriter>("tests/test_out.txt");
+/// logger.remove_writer(FileWriter::name); // the name is used to identify a writer
+/// ```
+/// 
+/// \section formatters Formatters
+/// 
+/// Before sending the log to the writers, the log input needs to be
+/// formatted. For example, the string "Hello, I am {} form {}" needs to
+/// be completed, additional metadata needs to be added based on the
+/// flags, and other customization such as coloring.
+/// 
+/// The user can specify a formatter function which can be used instead of
+/// the default one, enabling greater customizability and flexilibty.
+/// 
+/// ```cpp
+/// logger.set_formatter(my_formatter);
 /// ```

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['logger_0',['Logger',['../classoak_1_1Logger.html',1,'oak']]]
+  ['stdoutwriter_0',['StdoutWriter',['../classoak_1_1StdoutWriter.html',1,'oak']]]
 ];
