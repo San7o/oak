@@ -223,6 +223,20 @@ void test_net_socket()
 #endif
 */
 
+
+void test_event()
+{
+  oak::Logger logger = oak::Logger();
+  logger.set_flags(oak::Flags::Json, oak::Flags::Time);
+  logger.activate_event(0, "traces");
+  logger.activate_event(1, "entry");
+  logger.activate_event(2, "exit");
+  logger.activate_event(3, "allocation");
+
+  logger.event(3, "I have allocated something right here");
+  logger.event(4, "You should not be able to read this");
+}
+
 int main()
 {
 #ifdef OAK_USE_SOCKETS
@@ -244,6 +258,7 @@ int main()
   // test_net_socket();
 #endif
 #endif
+  test_event();
 
   if (errors > 0)
   {

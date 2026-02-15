@@ -145,6 +145,12 @@ void Logger::set_level(enum Level level)
   return;
 }
 
+void Logger::set_formatter(Formatter formatter)
+{
+  this->formatter = formatter;
+  return;
+}
+
 unsigned int Logger::get_flags() const
 {
   return this->flags;
@@ -292,3 +298,16 @@ Logger::load_config_file(const std::filesystem::path& file)
 
   return 0;
 }
+
+
+
+void Logger::activate_event(unsigned int id, const std::string &name)
+{
+  this->events[id] = name;
+}
+
+void Logger::deactivate_event(unsigned int id)
+{
+  this->events.erase(id);
+}
+  

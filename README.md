@@ -1,7 +1,7 @@
 ![oak-banner](./docs/oak_banner.jpeg)
 
 Oak is a lightweight logging library written in C++23, designed to
-simplify logging in modern C++ applications. 
+simplify logging in modern C++ applications.
 
 This code was originally forked from the logger of [Brenta
 Engine](https://github.com/San7o/Brenta-Engine) in order to develop it
@@ -9,41 +9,16 @@ independently from the engine.
 
 ## Features
 
-
-- **Thread-Safety**: Oak ensures safe logging in multi-threaded
-  environments, preventing data races and synchronization issues.
-- **Minimal Overhead**: Optimized for performance, Oak introduces
-  minimal runtime overhead, ensuring it doesn't compromise the speed
-  of your application.
-- **Simplicity and Ease of Use**: Oak's API is intuitive, allowing you
-  to integrate it seamlessly into your project without a steep
-  learning curve.
-- **Customization**: Oak offers a range of customization options,
-  allowing you to tailor the logging experience to your specific
-  requirements.
-
-- **multiple logging levels**
-
-- **log to file**
-
-- **log to unix sockets**
-
-- **log to net sockets**
-
-- **log metadata**
-
-- **settings file**
-
-- **json serialization**
-
-- **log buffering**
-
-- **async logging**
+- Thread-Safety
+- Simplicity and Ease of Use
+- Customization: Oak is designed with a modular architecture so you
+  can easily implement new writers and formatters.
+- Support for multiple logging levels, event logging, json formatting...
+- Load a settings file**
 
 # Usage
 
-If you don't want to mess with your build system, you can simply copy
-[include/oak/oak.hpp](./include/oak/oak.hpp) and
+You can simply copy [include/oak/oak.hpp](./include/oak/oak.hpp) and
 [src/oak.cpp](./src/oak.cpp) in your imports and sources
 respectively. Alternatively, you can add this repository as a git
 submodule and register it in cmake as a subdirectory, or fetch it
@@ -62,106 +37,50 @@ To learn about all the functionalities, please visit the [html
 documentation](https://san7o.github.io/oak/). Here is presented a
 quick guide to showcase the library's api.
 
-### The writer
-
-The logger uses a writer to read the message queue and correctly
-writes the output in the specified location, allowing buffering.
+There is a single header, `oak.cpp`:
 
 ```c++
 #include <oak/oak.cpp>
-// ...
-
-oak::init_writer();
-// Do stuff and have fun here
-oak::stop_writer();
 ```
 
-### How to log
-
-Log something with the level `info`:
+You can create a local `Logger` object, its resources will be
+automatically cleaned  when it goes out of scope.
 
 ```c++
-oak::info("i love {}!", what);
+auto logger = oak::Logger();
 ```
 
-```bash
-# output
-[level=info] i love oak!
-```
+There is also a global logger that is accessible throught static
+functions, like `oak::log(...)` instead of `logger.log(...)`.
 
-Or use macros if you prefer:
+## Settings
+
+You tune the logger via getter / setters for the varous values:
 
 ```c++
-OAK_INFO("add a {} to this library!", star);
+logger.set_level(oak::Level::Debug);
+logger.set_flags(oak::Flags::File, oak::Flags::Line, oak::Flags::Time);
 ```
 
-### Set the Log level
-
-Only logs with an higher level will be logged:
+You can also load the settings from a configuration file:
 
 ```c++
-oak::set_level(oak::level::debug);
+logger.load_config_file("settings.oak");
 ```
 
-### Add metadata
+## Formatters
 
-```c++
-oak::set_flags(oak::flags::level, oak::flags::date);
-```
+// TODO
 
-```bash
-# example output
-[level=info,date=2024-09-11] nice
-```
+## Writers
 
-You can also serialize the log adding the flag `oak::flags::json`:
+// TODO
 
-```
-{ "level": "output", "date": "2024-09-11", "time": "15:35:20", "pid": 30744, "tid": 9992229128130766714, "message": "Hello Mario" }
-```
+## Logging
 
-### Log to file
+// TODO
 
-```c++
-auto file = oak::set_file("/tmp/my-log");
-if (!file.has_value())
-    oak::error("Error setting file: {}", file.error());
-```
-
-The library uses `std::expected` to handle errors.
-
-### Log to socket
-
-```c++
-// unix sockets
-oak::set_socket("/tmp/a-socket");
-// net socket, defaults to tcp
-oak::set_socket("127.0.0.1", 1337);
-// udp net socket
-oak::set_socket("127.0.0.1", 5678, protocol_t::udp);
-```
-
-### Settings file
-
-You can save the settings in a file with `key=value,...`, like this:
-
-```
-level = debug
-flags = level, date, time, pid, tid
-file = tests/log_test.txt
-```
-And use this settings like so:
-```c++
-auto r = oak::settings_file("settings.oak");
-if (!r.has_value())
-    oak::error("Error opening setting file: {}", r.error());
-```
-
-### Async logging
-
-```c++
-oak::async(oak::level:debug, "Time travelling");
-```
+## Event API
 
 # Contributing
 

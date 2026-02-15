@@ -69,13 +69,6 @@ enum class Flags : unsigned int
   Line    = 1 << 8,
   Default = Level,
 };
-  
-struct Event
-{
-  unsigned int id;
-  std::string name;
-};
-
 
 //
 // Global logger
@@ -136,8 +129,6 @@ public:
   std::string get_name() override;
     
 };
-
-// TODO: NetWriter, UnixWriter
 
 // Logger object
 class Logger
@@ -205,9 +196,6 @@ public:
     }
   }
 
-  // TODO: Add event
-  // TODO: Remove event
-
   template<typename W, typename ...Args>
   void add_writer(Args &&...init_args)
   {
@@ -241,18 +229,44 @@ public:
   std::expected<int, std::string>
   load_config_file(const std::filesystem::path& file);
 
-  // TODO
+  void set_formatter(Formatter formatter);
+  
+  // Event api
+
+  void activate_event(unsigned int id, const std::string& name);
+  void deactivate_event(unsigned int id);
+  
+  template<typename... Args>
+  void event2(const char* file, int line, unsigned int id,
+              const char *fmt, Args &&...args)
+  {
+    if (!events.contains(id)) return;
+
+    std::string str = std::vformat(fmt, std::make_format_args(args...));
+    
+    auto name = events[id];
+    auto formatted = std::vformat(fmt, std::make_format_args(args...));
+    formatted = this->formatter(get_level(), flags, file, line, formatted);
+    auto flags = get_flags();
+
+    std::string output;
+    if (flags & (unsigned int) Flags::Json)
+    {
+      formatted[formatted.size() -1] = ' '; // remove newline
+      output = " { \"event\": \"" + name + "\", \"data\": " + formatted + "}\n";
+    }
+    else output = "[ " + name + " ] " + formatted;
+
+    for (auto& writer : this->writers)
+    {
+      writer->write(output);
+    }
+    
+    return;
+  }
   template<typename... Args>
   void event(unsigned int id, const char *fmt, Args &&...args)
-  {
-    // TODO: check that event is enabled (should be atomic / mutexed)
-    
-    std::string str = std::vformat(fmt, std::make_format_args(args...));
-    str = "[EVENT_NAME_TODO] " + str; // TODO
-
-    // TODO: should call all callbacks
-    //write(1, str.c_str(), str.size());
-  }
+  { event2("unknown", 0, id, fmt, args...); }
 
 private:
 
@@ -348,7 +362,7 @@ private:
   
   enum Level          level = Level::Info;
   unsigned long int   flags = (int)Flags::Default;
-  std::vector<Event>  events;
+  std::unordered_map<unsigned int, std::string>  events;
 
   Formatter           formatter = default_formatter;
   std::vector<std::shared_ptr<Writer>> writers;  
@@ -383,14 +397,21 @@ static inline void  set_level(enum Level level)
 static inline unsigned int get_flags()
 { return oak::get_global().get_flags(); }
 template<typename ...F>
-void set_flags(F&&...flags)
+static inline void set_flags(F&&...flags)
 { oak::get_global().set_flags(flags...); }
 template<typename ...F>
-void add_flags(F&&...flags)
+static inline void add_flags(F&&...flags)
 { oak::get_global().add_flags(flags...); }
-std::expected<int, std::string>
+static inline std::expected<int, std::string>
 load_config_file(const std::filesystem::path& file)
 { return oak::get_global().load_config_file(file); }
+
+static inline void activate_event(unsigned int id,
+                                  const std::string& name)
+{ oak::get_global().activate_event(id, name); }
+
+static inline void deactivate_event(unsigned int id)
+{ oak::get_global().deactivate_event(id); }
   
 } // namespace oak
 
